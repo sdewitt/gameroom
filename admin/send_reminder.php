@@ -4,7 +4,7 @@ include 'main.php';
 template_admin_header('Dashboard', 'dashboard');
 
 //Real SQL -- CHANGE THE YEAR
-$stmt = $pdo->prepare('select * from accounts where exists (select * from gamelist where accounts.id = gamelist.ownerid and gamelist.showyear=2025) order by firstname');
+$stmt = $pdo->prepare('select * from accounts where exists (select * from gamelist where accounts.id = gamelist.ownerid and gamelist.showyear=' . PRIOR_YEAR . ') order by firstname');
 
 //Test SQL
 //$stmt = $pdo->prepare('select * from accounts where id=2');

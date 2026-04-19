@@ -240,7 +240,7 @@ try {
    $mail->IsHTML(true); 
    $mail->setFrom('gameroom@gameatl.com', 'Southern-Fried Gaming Expo');
    $mail->addAddress($email, $fullname);
-   $mail->Subject = 'Help make SFGE 2026 the best!';
+   $mail->Subject = 'Help make SFGE ' . CURRENT_YEAR . ' the best!';
    $mail->Body = $email_template;
    $mail->send();
 }

@@ -5,22 +5,22 @@ $accounts_total = $pdo->query('SELECT COUNT(*) AS total FROM accounts')->fetchCo
 $inactive_accounts = $pdo->query('SELECT COUNT(*) AS total FROM accounts WHERE last_seen < date_sub(now(), interval 1 month)')->fetchColumn();
 $active_accounts = $pdo->query('SELECT * FROM accounts WHERE last_seen > date_sub(now(), interval 1 day) ORDER BY last_seen DESC')->fetchAll(PDO::FETCH_ASSOC);
 $active_accounts2 = $pdo->query('SELECT COUNT(*) AS total FROM accounts WHERE last_seen > date_sub(now(), interval 1 month)')->fetchColumn();
-$total_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where showyear=2026')->fetchColumn();
-$total_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where showyear=2025')->fetchColumn();
-$pin_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="p" and showyear=2026')->fetchColumn();
-$pin_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="p" and showyear=2025')->fetchColumn();
-$arcade_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="v"and showyear=2026')->fetchColumn();
-$arcade_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="v"and showyear=2025')->fetchColumn();
-$custom_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="c" and showyear=2026')->fetchColumn();
-$custom_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="c" and showyear=2025')->fetchColumn();
-$tournament_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where tournamentpin=1 and showyear=2026')->fetchColumn();
-$tournament_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where tournamentpin=1 and showyear=2025')->fetchColumn();
+$total_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where showyear=' . CURRENT_YEAR)->fetchColumn();
+$total_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where showyear=' . PRIOR_YEAR)->fetchColumn();
+$pin_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="p" and showyear=' . CURRENT_YEAR)->fetchColumn();
+$pin_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="p" and showyear=' . PRIOR_YEAR)->fetchColumn();
+$arcade_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="v"and showyear=' . CURRENT_YEAR)->fetchColumn();
+$arcade_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="v"and showyear=' . PRIOR_YEAR)->fetchColumn();
+$custom_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="c" and showyear=' . CURRENT_YEAR)->fetchColumn();
+$custom_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="c" and showyear=' . PRIOR_YEAR)->fetchColumn();
+$tournament_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where tournamentpin=1 and showyear=' . CURRENT_YEAR)->fetchColumn();
+$tournament_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where tournamentpin=1 and showyear=' . PRIOR_YEAR)->fetchColumn();
 $machinesdown_count = $pdo->query('SELECT COUNT(distinct machineid) FROM machineissues where status=1')->fetchColumn();
 $opentickets_count = $pdo->query('SELECT COUNT(*) FROM machineissues where status=1')->fetchColumn();
 $votes_count = $pdo->query('SELECT COUNT(*) FROM votes')->fetchColumn();
 
 if ($_SESSION['name']=='sdewitt') {
-    $gamecounts = $pdo->query('SELECT gamelist.ownerid, accounts.firstname, accounts.lastname, count(*) as count FROM gamelist inner join accounts as accounts on accounts.id = gamelist.ownerid where gamelist.showyear=2026 GROUP BY gamelist.ownerid ORDER BY COUNT DESC');
+    $gamecounts = $pdo->query('SELECT gamelist.ownerid, accounts.firstname, accounts.lastname, count(*) as count FROM gamelist inner join accounts as accounts on accounts.id = gamelist.ownerid where gamelist.showyear=' . CURRENT_YEAR . ' GROUP BY gamelist.ownerid ORDER BY COUNT DESC');
     $total_owed=0;
     $number_payees=0;
     while ($row = $gamecounts->fetch()) {
@@ -39,8 +39,8 @@ if ($_SESSION['name']=='sdewitt') {
 };
 
 date_default_timezone_set('America/New_York');
-$date_votingopens = new DateTime('2026-07-31 16:00:00');
-$date_votingcloses = new DateTime('2026-08-02 11:00:00');
+$date_votingopens = new DateTime(date('Y-m-d', strtotime(STARTDATE)) . ' 16:00:00');
+$date_votingcloses = new DateTime(date('Y-m-d', strtotime(ENDDATE)) . ' 11:00:00');
 $now = new DateTime();
 
 ?>
@@ -53,7 +53,7 @@ $now = new DateTime();
         <div>
             <h3>Total Machines</h3>
             <p><?=number_format($total_count)?><br>
-            <font size=-2>2025 Total - <?=number_format($total_count_prior)?></font></p>
+            <font size=-2><?=PRIOR_YEAR?> Total - <?=number_format($total_count_prior)?></font></p>
         </div>
         <i class="fa fa-bell"></i>
     </div>
@@ -62,7 +62,7 @@ $now = new DateTime();
         <div>
             <h3>Total Pinballs</h3>
             <p><?=number_format($pin_count)?><br>
-            <font size=-2>2025 Total - <?=number_format($pin_count_prior)?></font></p>
+            <font size=-2><?=PRIOR_YEAR?> Total - <?=number_format($pin_count_prior)?></font></p>
         </div>
         <i class="fa-solid fa-pinball"></i>
     </div>
@@ -71,7 +71,7 @@ $now = new DateTime();
         <div>
             <h3>Total Arcades </h3>
             <p><?=number_format($arcade_count)?><br>
-            <font size=-2>2025 Total - <?=number_format($arcade_count_prior)?></font></p>
+            <font size=-2><?=PRIOR_YEAR?> Total - <?=number_format($arcade_count_prior)?></font></p>
         </div>
         <i class="fas fa-ghost"></i>
     </div>
@@ -80,7 +80,7 @@ $now = new DateTime();
         <div>
             <h3>Total Custom</h3>
             <p><?=number_format($custom_count)?><br>
-            <font size=-2>2025 Total - <?=number_format($custom_count_prior)?></font></p>
+            <font size=-2><?=PRIOR_YEAR?> Total - <?=number_format($custom_count_prior)?></font></p>
         </div>
         <i class="fas fa-gamepad"></i>
     </div>
@@ -91,7 +91,7 @@ $now = new DateTime();
         <div>
             <h3>Tournament Pins</h3>
             <p><?=number_format($tournament_count)?><br>
-            <font size=-2>2025 Total - <?=number_format($tournament_count_prior)?></font></p>
+            <font size=-2><?=PRIOR_YEAR?> Total - <?=number_format($tournament_count_prior)?></font></p>
         </div>
         <i class="fas fa-trophy"></i>
     </div>
@@ -105,11 +105,11 @@ if ($now > $date_votingcloses) {
     echo "(Voting NOW CLOSED) - <a href='voting_results.php'>Vote Results</a>";
 } elseif ($now >= $date_votingopens) {
     $interval = $now->diff($date_votingcloses);
-    echo "Voting Closes August 2nd at 11:00am<br>";
+    echo "Voting Closes " . ENDDATE . " at 11:00am<br>";
     echo $interval->format("%a days, %h hours, %i minutes");
 } else {
     $interval = $now->diff($date_votingopens);
-    echo "Voting Opens July 31 at 3:00pm<br>";
+    echo "Voting Opens " . STARTDATE . " at 3:00pm<br>";
     echo $interval->format("%a days, %h hours, %i minutes");
 }
 			?>

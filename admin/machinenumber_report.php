@@ -1,8 +1,8 @@
-<?php
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
-define('db_host','gameatl.com:3306');
+<?php
+include_once '../config.php';
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+        WHERE g.showyear = '" . PRIOR_YEAR . "' AND g.approved = 1
 define('db_user','u0vunj7bxc6ww');
 define('db_pass','f8lmh2l15m2m');
 define('db_name','db0fnwzcvwqnvk');
@@ -24,7 +24,7 @@ try {
         WHERE g.showyear = '2025' AND g.approved = 1
         ORDER BY a.lastname, a.firstname, g.gametitle
     ");
-    $stmt->execute();
+    $stmt->execute();    echo "<!DOCTYPE html><html><head><title>Game Count Report " . PRIOR_YEAR . "</title>
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Organize by owner
@@ -58,7 +58,8 @@ try {
             'name' => "{$owner['name']} - $count",
             'games' => $owner['games']
         ];
-
+    echo "<h1>Game Count Report for " . PRIOR_YEAR . "</h1>";
+
         if ($count === 1) {
             $categories['Bringing 1 game'][] = $entry;
         } elseif ($count === 2) {
