@@ -3,7 +3,7 @@ include_once("config_grid.php");
 include("lib/inc/jqgrid_dist.php");
 include 'main.php';
 check_loggedin($pdo);
-$_SESSION['showyear'] = 2026;
+$_SESSION['showyear'] = CURRENT_YEAR;
 
 if (!isset($_SESSION['showstatus'])) {
     $_SESSION['showstatus'] = 'open';
@@ -204,17 +204,17 @@ $out = $g->render("list1");
 <?php
 
 $date_now = new DateTime(); // Now in Eastern
-$date_votingopens = new DateTime('2026-07-31 15:00:00'); // 3:00 PM Eastern
-$date_votingcloses = new DateTime('2026-08-02 16:00:00'); // 11:00 AM Eastern
+$date_votingopens = new DateTime(date('Y-m-d', strtotime(STARTDATE)) . ' 15:00:00'); // 3:00 PM Eastern
+$date_votingcloses = new DateTime(date('Y-m-d', strtotime(ENDDATE)) . ' 16:00:00'); // 11:00 AM Eastern
 
 if ($date_now > $date_votingcloses) {
     echo "<button type='button' class='btn-gold' disabled><i class='fa-duotone fa-check-to-slot'></i> Awards Voting</button> (Voting NOW CLOSED)";
 } elseif (($date_now > $date_votingopens) || ($_SESSION['role'] == 'Admin')) {
     $interval = $date_now->diff($date_votingcloses);
     $time_remaining = $interval->format('%a days, %h hours, %i minutes');
-    echo "<a class='btn-gold' href='vote.php'><i class='fa-duotone fa-check-to-slot'></i> Awards Voting</a> (Voting Closes 8/2 at 11:00am — $time_remaining remaining)";
+    echo "<a class='btn-gold' href='vote.php'><i class='fa-duotone fa-check-to-slot'></i> Awards Voting</a> (Voting Closes " . ENDDATE . " at 11:00am — $time_remaining remaining)";
 } else {
-    echo "<button type='button' class='btn-gold' disabled><i class='fa-duotone fa-check-to-slot'></i> Awards Voting</button> (Voting Opens July 31st at 3:00pm)";
+    echo "<button type='button' class='btn-gold' disabled><i class='fa-duotone fa-check-to-slot'></i> Awards Voting</button> (Voting Opens " . STARTDATE . " at 3:00pm)";
 }
 ?>
             </p>

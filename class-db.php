@@ -1,9 +1,10 @@
 <?php
+include_once __DIR__ . '/config.php';
 class DB {
-    private $dbHost     = "gameatl.com:3306";
-    private $dbUsername = "u0vunj7bxc6ww";
-    private $dbPassword = "f8lmh2l15m2m";
-    private $dbName     = "db0fnwzcvwqnvk";
+    private $dbHost     = db_host;
+    private $dbUsername = db_user;
+    private $dbPassword = db_pass;
+    private $dbName     = db_name;
 
 
     public function __construct() {

@@ -1,9 +1,5 @@
 <?
-define('db_host','gameatl.com:3306');
-define('db_user','u0vunj7bxc6ww');
-define('db_pass','f8lmh2l15m2m');
-define('db_name','db0fnwzcvwqnvk');
-define('db_charset','utf8');
+include_once 'config.php';
 
 try {
 	$pdo = new PDO('mysql:host=' . db_host . ';dbname=' . db_name . ';charset=' . db_charset, db_user, db_pass);

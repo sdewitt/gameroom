@@ -205,7 +205,7 @@ if (!function_exists('com_create_guid')) {
 }
 
 
-$sqlstmt = "SELECT * FROM machineissues JOIN gamelist ON gamelist.yearlistid = machineissues.machineid where status=1 and gamelist.showyear=2025;`";
+$sqlstmt = "SELECT * FROM machineissues JOIN gamelist ON gamelist.yearlistid = machineissues.machineid where status=1 and gamelist.showyear=" . PRIOR_YEAR . ";`";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $downlist = $stmt->fetchAll();

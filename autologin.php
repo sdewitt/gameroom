@@ -1,4 +1,5 @@
-<?php
+			$_SESSION['showyear'] = PRIOR_YEAR;
+</html>
 include 'main.php';
 // Output message
 $msg = '';
