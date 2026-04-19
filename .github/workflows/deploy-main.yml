@@ -1,0 +1,169 @@
+name: Deploy to SiteGround (gameroom.gameatl.com) — SAFE
+
+on:
+  push:
+    branches: [ "main" ]
+    paths-ignore:
+      - ".github/**"
+      - "**/*.md"
+      - "**/.DS_Store"
+
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch/tag/sha to deploy"
+        required: false
+        default: "main"
+      dry_run:
+        description: "Simulate (no changes)"
+        required: false
+        default: "false"
+      allow_delete:
+        description: "Allow '--delete' (dangerous)"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: siteground-${{ github.ref || github.event.inputs.ref || 'manual' }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || '' }}
+          fetch-depth: 1
+
+      - name: Start ssh-agent and add key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SG_SSH_PRIVATE_KEY }}
+
+      - name: Add SiteGround to known_hosts
+        env:
+          SG_HOST: ${{ secrets.SG_HOST }}
+          SG_PORT: ${{ secrets.SG_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${SG_PORT:-18765} "${SG_HOST}" >> ~/.ssh/known_hosts || true
+
+      - name: Guardrails & show config (volunteer.gameatl.com only)
+        env:
+          SG_HOST: ${{ secrets.SG_HOST }}
+          SG_USER: ${{ secrets.SG_USER }}
+          SG_PORT: ${{ secrets.SG_PORT }}
+          SG_PATH: ${{ secrets.SG_PATH }}
+        run: |
+          set -euo pipefail
+          echo "Host : ${SG_HOST}"
+          echo "User : ${SG_USER}"
+          echo "Port : ${SG_PORT:-18765}"
+          echo "PATH : ${SG_PATH}"
+
+          if [ -z "${SG_PATH:-}" ]; then
+            echo "ERROR: SG_PATH is empty."
+            exit 2
+          fi
+
+          if ! echo "${SG_PATH}" | grep -q "public_html"; then
+            echo "ERROR: SG_PATH must include 'public_html'"
+            exit 2
+          fi
+
+          case "${SG_PATH}" in
+            *"gameroom.gameatl.com/public_html"*)
+              echo "OK: gameroom.gameatl.com docroot detected."
+              ;;
+            *)
+              echo "ERROR: SG_PATH must contain 'gameroom.gameatl.com/public_html'"
+              exit 2
+              ;;
+          esac
+
+      - name: Confirm panels docroot exists (peek)
+        env:
+          SG_HOST: ${{ secrets.SG_HOST }}
+          SG_USER: ${{ secrets.SG_USER }}
+          SG_PORT: ${{ secrets.SG_PORT }}
+          SG_PATH: ${{ secrets.SG_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -p ${SG_PORT:-18765} "${SG_USER}@${SG_HOST}" \
+            "echo 'Expecting ~/${SG_PATH}'; ls -ld ~/${SG_PATH} 2>/dev/null || true; ls -la ~/${SG_PATH} 2>/dev/null | head -n 50 || true"
+
+      - name: Ensure remote dir exists and is writable
+        env:
+          SG_HOST: ${{ secrets.SG_HOST }}
+          SG_USER: ${{ secrets.SG_USER }}
+          SG_PORT: ${{ secrets.SG_PORT }}
+          SG_PATH: ${{ secrets.SG_PATH }}
+        run: |
+          set -euxo pipefail
+          ssh -p ${SG_PORT:-18765} "${SG_USER}@${SG_HOST}" 'bash -s' <<'EOF'
+          set -e
+          mkdir -p ~/${SG_PATH}
+          if [ ! -w ~/${SG_PATH} ]; then
+            echo "ERROR: ~/${SG_PATH} is not writable"
+            exit 1
+          fi
+          echo "✅ Remote directory exists and is writable."
+          EOF
+
+      - name: Compute flags (dry-run/delete)
+        id: flags
+        run: |
+          set -euo pipefail
+          DRY="false"
+          DEL="false"
+
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            DRY="${{ github.event.inputs.dry_run || 'false' }}"
+            DEL="${{ github.event.inputs.allow_delete || 'false' }}"
+          fi
+
+          echo "dry=${DRY}"   >> "$GITHUB_OUTPUT"
+          echo "delete=${DEL}" >> "$GITHUB_OUTPUT"
+
+      - name: Rsync deploy
+        env:
+          SG_HOST: ${{ secrets.SG_HOST }}
+          SG_USER: ${{ secrets.SG_USER }}
+          SG_PORT: ${{ secrets.SG_PORT }}
+          SG_PATH: ${{ secrets.SG_PATH }}
+          DRY: ${{ steps.flags.outputs.dry }}
+          DEL: ${{ steps.flags.outputs.delete }}
+        run: |
+          set -euo pipefail
+
+          DRY_FLAG=""
+          [ "${DRY}" = "true" ] && DRY_FLAG="--dry-run"
+
+          DEL_FLAG=""
+          [ "${DEL}" = "true" ] && DEL_FLAG="--delete"
+
+          echo "RSYNC → ~/${SG_PATH}   DRY_RUN=${DRY}  DELETE=${DEL}"
+
+          EXCLUDES="--exclude=.git --exclude=.github --exclude=node_modules --exclude=.env* --exclude=.DS_Store"
+
+          rsync -az -vv $DRY_FLAG $DEL_FLAG $EXCLUDES \
+            -e "ssh -p ${SG_PORT:-18765}" ./ \
+            "${SG_USER}@${SG_HOST}:~/${SG_PATH}/"
+
+      - name: Post-deploy check (noop if dry run)
+        if: ${{ steps.flags.outputs.dry != 'true' }}
+        env:
+          SG_HOST: ${{ secrets.SG_HOST }}
+          SG_USER: ${{ secrets.SG_USER }}
+          SG_PORT: ${{ secrets.SG_PORT }}
+        run: |
+          set +e
+          echo "Running post-deploy sanity check..."
+          ssh -p ${SG_PORT:-18765} "${SG_USER}@${SG_HOST}" "which php >/dev/null 2>&1 && php -v || echo '⚠️ PHP not found or not executable — skipping check.'"
+          exit 0
