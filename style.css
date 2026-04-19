@@ -1,0 +1,505 @@
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "segoe ui", roboto, oxygen, ubuntu, cantarell, "fira sans", "droid sans", "helvetica neue", Arial, sans-serif;
+  font-size: 16px;
+}
+
+body {
+  background-color: #435165;
+  margin: 0;
+}
+
+.login, .register {
+  width: 400px;
+  box-shadow: 0 0 9px 0 rgba(0, 0, 0, 0.3);
+  margin: 0px auto;
+}
+
+ .edit {
+  background-color: #ffffff;
+  margin: 4px auto;
+}
+
+.login h1, .register h1, .edit h1 {
+  text-align: center;
+  color: #5b6574;
+  font-size: 24px;
+  padding: 20px 0 20px 0;
+  border-bottom: 1px solid #dee0e4;
+}
+
+.login .links, .register .links, .edit .links{
+  display: flex;
+  padding: 0 15px;
+}
+
+.greenfooter {
+    background-color: #c8d578;
+    align-items: center;
+    border: 1px solid darkgray;
+    font-size: larger;
+    color: green;
+    text-align: center;
+}
+
+.login .links a, .register .links a, .edit .links a {
+  color: #adb2ba;
+  text-decoration: none;
+  display: inline-flex;
+  padding: 0 10px 10px 10px;
+  font-weight: bold;
+}
+
+.login .links a:hover, .register .links a:hover, .edit .links a:hover {
+  color: #9da3ac;
+}
+
+.login .links a.active, .register .links a.active, .edit .links a.active {
+  border-bottom: 3px solid #3274d6;
+  color: #3274d6;
+}
+
+.login form, .register form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+.edit form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+.login form label, .register form label, .edit form label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 12%;
+  height: 50px;
+  background-color: #3274d6;
+  color: #ffffff;
+}
+
+.login form input[type="password"], .login form input[type="text"], .login form input[type="email"], .register form input[type="password"], .register form input[type="text"], .register form input[type="email"], .edit form input[type="password"], .edit form input[type="text"], .edit form input[type="email"] {
+  width: 80%;
+  height: 50px;
+  border: 1px solid #dee0e4;
+  margin-bottom: 20px;
+  padding: 0 15px;
+}
+
+.login form input[type="submit"], .register form input[type="submit"], .edit form input[type="submit"] {
+  width: 100%;
+  padding: 15px;
+  margin-top: 20px;
+  background-color: #3274d6;
+  border: 0;
+  cursor: pointer;
+  font-weight: bold;
+  color: #ffffff;
+  transition: background-color 0.2s;
+  border-radius: 0;
+  appearance: none;
+}
+
+.login form input[type="submit"]:hover, .register form input[type="submit"]:hover {
+  background-color: #2868c7;
+  transition: background-color 0.2s;
+}
+
+.login form #rememberme, .register form #rememberme {
+  width: 100%;
+  height: auto;
+  padding: 5px 20px;
+  background-color: transparent;
+  color: #000;
+  justify-content: flex-start;
+}
+
+.login form #rememberme input, .register form #rememberme input {
+  transform: scale(1.3);
+  margin-right: 7px;
+}
+
+.login form .msg, .register form .msg {
+  padding: 0 20px;
+  width: 100%;
+}
+
+.login form .captcha, .register form .captcha {
+  display: flex;
+}
+
+.login form > a, .register form > a {
+  text-decoration: none;
+  color: #5b6574;
+  width: 100%;
+  padding: 5px 20px;
+}
+
+.login form > a:hover, .register form > a:hover {
+  color: #394049;
+}
+
+.navtop {
+  background-color: #2f3947;
+  height: 60px;
+  width: 100%;
+  border: 0;
+}
+
+.navtop div {
+  display: flex;
+  margin: 0 auto;
+  width: 1000px;
+  height: 100%;
+}
+
+.navtop div h1, .navtop div a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.navtop div h1 {
+  flex: 1;
+  font-size: 22px;
+  padding: 0;
+  margin: 0;
+  color: #eaebed;
+  font-weight: normal;
+}
+
+.navtop div a {
+  padding: 0 15px;
+  text-decoration: none;
+  color: #c1c4c8;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.navtop div a i {
+  font-size: 14px;
+  padding: 2px 8px 0 0;
+}
+
+.navtop div a:hover {
+  color: #eaebed;
+}
+
+body.loggedin {
+  background-color: #f3f4f7;
+}
+
+.content {
+  width: 1000px;
+  margin: 0 auto;
+}
+
+.content h2 {
+  margin: 0;
+  padding: 25px 0;
+  font-size: 20px;
+  border-bottom: 1px solid #e0e0e3;
+  color: #4a536e;
+}
+
+.content .block {
+  box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.1);
+  margin: 25px 0;
+  padding: 25px;
+  background-color: #fff;
+}
+
+.content .block p {
+  padding: 5px;
+  margin: 0 0 10px 0;
+}
+
+.content.profile form label {
+  display: block;
+  padding: 15px 0 10px 0;
+  font-weight: 500;
+  font-size: 14px;
+  color: #4d4d4d;
+}
+
+.content.profile form input[type="text"], .content.profile form input[type="password"], .content.profile form input[type="email"] {
+  padding: 10px;
+  width: 250px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.content.editprofile form input[type="text"], .content.profile form input[type="password"], .content.profile form input[type="email"] {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.content.profile .profile-detail {
+  padding: 5px;
+}
+
+.content.profile .profile-detail strong {
+  display: inline-block;
+  color: #777;
+  min-width: 120px;
+  font-size: 16px;
+}
+
+.content.profile .profile-detail i {
+  width: 28px;
+  color: #aaabad;
+}
+
+.content.profile .profile-btn {
+  display: inline-block;
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
+  color: #fff;
+  background-color: #3274d6;
+  margin: 20px 5px 0 0;
+  padding: 10px 15px;
+  border-radius: 4px;
+  appearance: none;
+  font-size: 14px;
+}
+
+.content.profile .profile-btn-cancel {
+  display: inline-block;
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
+  color: #fff;
+  background-color: #d63232;
+  margin: 20px 5px 0 0;
+  padding: 10px 15px;
+  border-radius: 4px;
+  appearance: none;
+  font-size: 14px;
+}
+
+.content.profile .profile-btn:hover {
+  background-color: #2868c7;
+}
+
+@media screen and (max-width: 400px) {
+  .login, .register {
+    width: 95%;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  .navtop {
+    height: auto;
+    padding: 10px;
+  }
+  .navtop div {
+    flex-flow: wrap;
+    width: 100%;
+  }
+  .navtop div h1 {
+    display: block;
+    flex-basis: 100%;
+  }
+  .navtop div a {
+    padding: 10px 0;
+    flex-basis: 50%;
+  }
+  .content {
+    padding: 10px;
+    width: 100%;
+  }
+  .content form input[type="text"], .content form input[type="password"], .content form input[type="email"] {
+    width: 100%;
+    max-width: 100%;
+  }
+  .profile-detail strong {
+    width: 100%;
+  }
+}
+
+.msg  {
+    text-align: center;
+    padding: 0 20px;
+    color: black;
+    width: 100%;
+    align-items: center;
+    align-content: center;
+    background: yellow;
+            }
+
+.instructions  {
+    text-align: center;
+    padding: 10px 11px 20px 10px;
+    color: black;
+    width: 100%;
+    align-items: center;
+    align-content: center;
+    font-weight: 500;
+            }
+
+.gamebringer_selected {
+  border: 4px solid;
+  border-color:  #0837a3;
+  padding: 8px;
+  border-radius: 25px;
+background-image: linear-gradient(0deg, #dee0bc 16.67%, #fdffe3 16.67%, #fdffe3 50%, #dee0bc 50%, #dee0bc 66.67%, #fdffe3 66.67%, #fdffe3 100%);
+background-size: 6.00px 6.00px;
+}
+
+.gamebringer_selected_header {
+  background: yellow;
+  border: 4px solid;
+  border-color:  #0837a3;
+  padding: 8px;
+  border-radius: 25px;
+  font-weight: bold;
+  font-size: 30px;
+}
+
+.gamebringer_notselected {
+  border: 4px solid;
+  border-color:  #0837a3;
+  padding: 8px;
+  border-radius: 25px;
+}
+
+.btn-green {
+  background: #0f7d23;
+  background-image: -webkit-linear-gradient(top, #0f7d23, #12cc22);
+  background-image: -moz-linear-gradient(top, #0f7d23, #12cc22);
+  background-image: -ms-linear-gradient(top, #0f7d23, #12cc22);
+  background-image: -o-linear-gradient(top, #0f7d23, #12cc22);
+  background-image: linear-gradient(to bottom, #0f7d23, #12cc22);
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+   color: #FFFFFF;
+   font-family: Verdana;
+   font-size: 16px;
+   font-weight: 600;
+   padding: 14px;
+   text-shadow: 1px 1px 20px #000000;
+  border: solid #00590f 2px;
+   text-decoration: none;
+   display: inline-block;
+   cursor: pointer;
+   text-align: center;
+}
+
+.btn-green:hover {
+  background: #12cc22;
+  background-image: -webkit-linear-gradient(top, #12cc22, #0f7d23);
+  background-image: -moz-linear-gradient(top, #12cc22, #0f7d23);
+  background-image: -ms-linear-gradient(top, #12cc22, #0f7d23);
+  background-image: -o-linear-gradient(top, #12cc22, #0f7d23);
+  background-image: linear-gradient(to bottom, #12cc22, #0f7d23);
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+   text-decoration: none;
+}
+
+.btn-blue {
+   background: #3D94F6;
+   background-image: -webkit-linear-gradient(top, #3D94F6, #1E62D0);
+   background-image: -moz-linear-gradient(top, #3D94F6, #1E62D0);
+   background-image: -ms-linear-gradient(top, #3D94F6, #1E62D0);
+   background-image: -o-linear-gradient(top, #3D94F6, #1E62D0);
+   background-image: -webkit-gradient(to bottom, #3D94F6, #1E62D0);
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+   color: #FFFFFF;
+   font-family: Verdana;
+   font-size: 16px;
+   font-weight: 600;
+   padding: 14px;
+  
+   text-shadow: 1px 1px 20px #000000;
+   border: solid #337FED 1px;
+   text-decoration: none;
+   display: inline-block;
+   cursor: pointer;
+   text-align: center;
+   width: 230px;
+}
+
+.btn-blue:hover {
+   border: solid #337FED 1px;
+   background: #1E62D0;
+   background-image: -webkit-linear-gradient(top, #1E62D0, #3D94F6);
+   background-image: -moz-linear-gradient(top, #1E62D0, #3D94F6);
+   background-image: -ms-linear-gradient(top, #1E62D0, #3D94F6);
+   background-image: -o-linear-gradient(top, #1E62D0, #3D94F6);
+   background-image: -webkit-gradient(to bottom, #1E62D0, #3D94F6);
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+   text-decoration: none;
+}
+
+.btn-gold {
+   background: #fff6af;
+   background-image: -webkit-linear-gradient(top, #fff6af, #ffec64);
+   background-image: -moz-linear-gradient(top, #fff6af, #ffec64);
+   background-image: -ms-linear-gradient(top, #fff6af, #ffec64);
+   background-image: -o-linear-gradient(top, #fff6af, #ffec64);
+   background-image: -webkit-gradient(to bottom, #fff6af, #ffec64);
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+   color: #000000;
+   font-family: Verdana;
+   font-size: 16px;
+   font-weight: 600;
+   padding: 14px;
+   text-shadow: 1px 1px 20px #000000;
+   border: solid #ffaa22 1px;
+   text-decoration: none;
+   display: inline-block;
+   cursor: pointer;
+   text-align: center;
+}
+
+.btn-gold:hover {
+   border: #ffaa22 1px;
+   background: #ffec64;
+   background-image: -webkit-linear-gradient(top, #ffec64, #fff6af);
+   background-image: -moz-linear-gradient(top, #ffec64, #fff6af);
+   background-image: -ms-linear-gradient(top, #ffec64, #fff6af);
+   background-image: -o-linear-gradient(top, #ffec64, #fff6af);
+   background-image: -webkit-gradient(to bottom, #ffec64, #fff6af);
+   -webkit-border-radius: 20px;
+   -moz-border-radius: 20px;
+   border-radius: 20px;
+   text-decoration: none;
+}
+
+.checkbox-wrapper {
+  width: 40px;
+  height: 40px;
+  background-color: #3274d6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  transform: scale(1.3);
+  accent-color: white;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  margin: 0;
+  font-weight: 500;
+  color: #222;
+  cursor: pointer;
+}
