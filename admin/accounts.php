@@ -1,27 +1,23 @@
 <?php
 include 'main.php';
-// Retrieve the GET request parameters (if specified)
-$page = isset($_GET['page']) ? $_GET['page'] : 1;
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-// Filters parameters
+
+// Delete account
+if (isset($_GET['delete'])) {
+    $stmt = $pdo->prepare('DELETE FROM accounts WHERE id = ?');
+    $stmt->execute([ $_GET['delete'] ]);
+    header('Location: accounts.php?success_msg=3');
+    exit;
+}
+
+// Retrieve GET request parameters (if specified)
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 $activation = isset($_GET['activation']) ? $_GET['activation'] : '';
 $role = isset($_GET['role']) ? $_GET['role'] : '';
-// Order by column
-$order = isset($_GET['order']) && $_GET['order'] == 'DESC' ? 'DESC' : 'ASC';
-// Add/remove columns to the whitelist array
-$order_by_whitelist = ['id','firstname','lastname','phone','username','email','activation_code','role','registered','last_seen'];
-$order_by = isset($_GET['order_by']) && in_array($_GET['order_by'], $order_by_whitelist) ? $_GET['order_by'] : 'id';
-// Number of results per pagination page
-$results_per_page = 20;
-// Declare query param variables
-$param1 = ($page - 1) * $results_per_page;
-$param2 = $results_per_page;
-$param3 = '%' . $search . '%';
+
 // SQL where clause
 $where = '';
 $where .= $search ? 'WHERE (username LIKE :search OR email LIKE :search) ' : '';
-// Add filters
 if ($status == 'active') {
     $where .= $where ? 'AND last_seen > date_sub(now(), interval 1 month) ' : 'WHERE last_seen > date_sub(now(), interval 1 month) ';
 }
@@ -34,29 +30,19 @@ if ($activation == 'pending') {
 if ($role) {
     $where .= $where ? 'AND role = :role ' : 'WHERE role = :role ';
 }
-// Retrieve the total number of accounts
-$stmt = $pdo->prepare('SELECT COUNT(*) AS total FROM accounts ' . $where);
-if ($search) $stmt->bindParam('search', $param3, PDO::PARAM_STR);
-if ($role) $stmt->bindParam('role', $role, PDO::PARAM_STR);
-$stmt->execute();
-$accounts_total = $stmt->fetchColumn();
-// Prepare accounts query
-$stmt = $pdo->prepare('SELECT * FROM accounts ' . $where . ' ORDER BY ' . $order_by . ' ' . $order . ' LIMIT :start_results,:num_results');
-$stmt->bindParam('start_results', $param1, PDO::PARAM_INT);
-$stmt->bindParam('num_results', $param2, PDO::PARAM_INT);
-if ($search) $stmt->bindParam('search', $param3, PDO::PARAM_STR);
-if ($role) $stmt->bindParam('role', $role, PDO::PARAM_STR);
-$stmt->execute();
-// Retrieve query results
-$accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
-// Delete account
-if (isset($_GET['delete'])) {
-    // Delete the account
-    $stmt = $pdo->prepare('DELETE FROM accounts WHERE id = ?');
-    $stmt->execute([ $_GET['delete'] ]);
-    header('Location: accounts.php?success_msg=3');
-    exit;
+
+// Retrieve accounts
+$stmt = $pdo->prepare('SELECT * FROM accounts ' . $where . ' ORDER BY id ASC');
+if ($search) {
+    $search_param = '%' . $search . '%';
+    $stmt->bindParam('search', $search_param, PDO::PARAM_STR);
 }
+if ($role) {
+    $stmt->bindParam('role', $role, PDO::PARAM_STR);
+}
+$stmt->execute();
+$accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // Handle success messages
 if (isset($_GET['success_msg'])) {
     if ($_GET['success_msg'] == 1) {
@@ -69,10 +55,57 @@ if (isset($_GET['success_msg'])) {
         $success_msg = 'Account deleted successfully!';
     }
 }
-// Create URL
-$url = 'accounts.php?search=' . $search . '&status=' . $status . '&activation=' . $activation . '&role=' . $role;
+
+$accounts_json = array_map(function($account) {
+    $registered = strtotime($account['registered']);
+    return [
+        'id' => (int)$account['id'],
+        'firstname' => $account['firstname'],
+        'lastname' => $account['lastname'],
+        'email' => $account['email'],
+        'phone' => $account['phone'],
+        'registered' => $registered ? date('m/d/y', $registered) : '--',
+        'registered_ts' => $registered ?: 0,
+        'last_seen' => time_elapsed_string($account['last_seen']),
+        'last_seen_raw' => $account['last_seen']
+    ];
+}, $accounts);
 ?>
 <?=template_admin_header('Accounts', 'accounts', 'view')?>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.4/styles/ag-grid.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.4/styles/ag-theme-quartz.css">
+<script src="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.4/dist/ag-grid-community.min.js"></script>
+
+<style>
+#accountsGrid {
+    width: 100%;
+    height: 680px;
+}
+.accounts-grid-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+.accounts-grid-actions a {
+    color: #3f4a5a;
+    opacity: .15;
+    transition: opacity .2s ease, color .2s ease;
+}
+.ag-row-hover .accounts-grid-actions a,
+.accounts-grid-actions a:focus {
+    opacity: 1;
+}
+.accounts-grid-actions a.edit:hover,
+.accounts-grid-actions a.edit:focus {
+    color: #0d63f3;
+}
+.accounts-grid-actions a.delete:hover,
+.accounts-grid-actions a.delete:focus {
+    color: #d7263d;
+}
+</style>
 
 <h2>Accounts</h2>
 
@@ -109,58 +142,70 @@ $url = 'accounts.php?search=' . $search . '&status=' . $status . '&activation=' 
 </div>
 
 <div class="content-block">
-    <div class="table">
-        <table>
-            <thead>
-                <tr>
-                    <td><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=id'?>">#<?php if ($order_by=='id'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=firstname'?>">First Name<?php if ($order_by=='firstname'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=lastname'?>">Last Name<?php if ($order_by=='lastname'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=email'?>">Email<?php if ($order_by=='email'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=phone'?>">Phone<?php if ($order_by=='phone'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=activation_code'?>">Activation Code<?php if ($order_by=='activation_code'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=role'?>">Role<?php if ($order_by=='role'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=registered'?>">Registered Date<?php if ($order_by=='registered'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td class="responsive-hidden"><a href="<?=$url . '&order=' . ($order=='ASC'?'DESC':'ASC') . '&order_by=last_seen'?>">Last Seen<?php if ($order_by=='last_seen'): ?><i class="fas fa-level-<?=str_replace(['ASC', 'DESC'], ['up','down'], $order)?>-alt fa-xs"></i><?php endif; ?></a></td>
-                    <td>Actions</td>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (!$accounts): ?>
-                <tr>
-                    <td colspan="8" style="text-align:center;">There are no accounts</td>
-                </tr>
-                <?php endif; ?>
-                <?php foreach ($accounts as $account): ?>
-                <tr>
-                    <td><?=$account['id']?></td>
-                    <td class="responsive-hidden"><?=$account['firstname']?></td>
-                    <td class="responsive-hidden"><?=$account['lastname']?></td>
-                    <td class="responsive-hidden"><?=$account['email']?></td>
-                    <td class="responsive-hidden"><?=$account['phone']?></td>
-                    <td class="responsive-hidden"><?=$account['activation_code'] ? $account['activation_code'] : '--'?></td>
-                    <td class="responsive-hidden"><?=$account['role']?></td>
-                    <td class="responsive-hidden"><?=$account['registered']?></td>
-                    <td class="responsive-hidden" title="<?=$account['last_seen']?>"><?=time_elapsed_string($account['last_seen'])?></td>
-                    <td>
-                        <a href="account.php?id=<?=$account['id']?>">Edit</a>
-                        <a href="accounts.php?delete=<?=$account['id']?>" onclick="return confirm('Are you sure you want to delete this account?')">Delete</a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+    <div id="accountsGrid" class="ag-theme-quartz"></div>
 </div>
 
-<div class="pagination">
-    <?php if ($page > 1): ?>
-    <a href="<?=$url?>&page=<?=$page-1?>&order=<?=$order?>&order_by=<?=$order_by?>">Prev</a>
-    <?php endif; ?>
-    <span>Page <?=$page?> of <?=ceil($accounts_total / $results_per_page) == 0 ? 1 : ceil($accounts_total / $results_per_page)?></span>
-    <?php if ($page * $results_per_page < $accounts_total): ?>
-    <a href="<?=$url?>&page=<?=$page+1?>&order=<?=$order?>&order_by=<?=$order_by?>">Next</a>
-    <?php endif; ?>
-</div>
+<script>
+const accountRows = <?=json_encode($accounts_json, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)?>;
+
+const actionsRenderer = params => {
+    const id = Number(params.data.id);
+    return `
+        <div class="accounts-grid-actions">
+            <a class="edit" href="account.php?id=${id}" title="Edit user ${id}" aria-label="Edit user ${id}">
+                <i class="fas fa-pen"></i>
+            </a>
+            <a class="delete" href="accounts.php?delete=${id}" title="Delete user ${id}" aria-label="Delete user ${id}" onclick="return confirm('Are you sure you want to delete this account?')">
+                <i class="fas fa-trash"></i>
+            </a>
+        </div>
+    `;
+};
+
+const gridOptions = {
+    rowData: accountRows,
+    pagination: true,
+    paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 50, 100, 250],
+    animateRows: true,
+    defaultColDef: {
+        sortable: true,
+        filter: true,
+        resizable: true,
+        floatingFilter: true
+    },
+    columnDefs: [
+        { headerName: 'First Name', field: 'firstname', minWidth: 130 },
+        { headerName: 'Last Name', field: 'lastname', minWidth: 130 },
+        { headerName: 'Email', field: 'email', minWidth: 220 },
+        { headerName: 'Phone', field: 'phone', minWidth: 150 },
+        {
+            headerName: 'Registered Date',
+            field: 'registered',
+            minWidth: 150,
+            comparator: (a, b, nodeA, nodeB) => Number(nodeA.data.registered_ts) - Number(nodeB.data.registered_ts)
+        },
+        {
+            headerName: 'Last Seen',
+            field: 'last_seen',
+            minWidth: 130,
+            tooltipField: 'last_seen_raw'
+        },
+        {
+            headerName: '',
+            field: 'actions',
+            width: 72,
+            sortable: false,
+            filter: false,
+            floatingFilter: false,
+            suppressHeaderMenuButton: true,
+            cellRenderer: actionsRenderer,
+            pinned: 'right'
+        }
+    ]
+};
+
+agGrid.createGrid(document.getElementById('accountsGrid'), gridOptions);
+</script>
 
 <?=template_admin_footer()?>
