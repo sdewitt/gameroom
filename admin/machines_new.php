@@ -167,7 +167,6 @@ document.querySelector(".responsive-toggle").onclick = event => {
 
 const typeOptions = { p: 'Pinball', v: 'Arcade', c: 'Custom' };
 const awardsOptions = { '': '', 1: 'EM Pinball', 2: 'Solid State Pinball', 3: 'Modern Pinball', 4: 'Restoration', 5: 'Custom' };
-let ownerMap = {};
 
 async function apiGet(url) {
     const res = await fetch(url);
@@ -189,9 +188,63 @@ function refDataFormatter(map) {
     return params => map[params.value] ?? params.value ?? '';
 }
 
+function tournamentCheckboxRenderer(params) {
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = String(params.value) === '1';
+    checkbox.style.cursor = 'pointer';
+    checkbox.addEventListener('click', async e => {
+        e.stopPropagation();
+        const newValue = checkbox.checked ? 1 : 0;
+        try {
+            await apiPost('machines_new.php?api=update', {
+                gamelistid: params.data.gamelistid,
+                field: 'tournamentpin',
+                value: newValue
+            });
+            params.node.setDataValue('tournamentpin', newValue);
+        } catch (err) {
+            checkbox.checked = !checkbox.checked;
+            alert('Update failed.');
+        }
+    });
+    return checkbox;
+}
+
+function actionsRenderer(params) {
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.gap = '6px';
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.type = 'button';
+    editBtn.style.padding = '2px 8px';
+    editBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        params.api.startEditingCell({ rowIndex: params.node.rowIndex, colKey: 'gametitle' });
+    });
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.textContent = 'Delete';
+    deleteBtn.type = 'button';
+    deleteBtn.style.padding = '2px 8px';
+    deleteBtn.addEventListener('click', async e => {
+        e.stopPropagation();
+        if (!confirm(`Delete machine "${params.data.gametitle}"?`)) {
+            return;
+        }
+        await apiPost('machines_new.php?api=delete', { ids: [params.data.gamelistid] });
+        await loadData();
+    });
+
+    wrapper.appendChild(editBtn);
+    wrapper.appendChild(deleteBtn);
+    return wrapper;
+}
+
 const columnDefs = [
     { headerName: 'Id', field: 'yearlistid', width: 95, editable: true, filter: true },
-    { headerName: 'Approved', field: 'approved', width: 110, editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['0', '1'] }, filter: true },
     {
         headerName: 'Game Title', field: 'gametitle', minWidth: 220, editable: true, filter: true,
         cellClass: params => String(params.data?.emailed) === '0' ? 'emailed-pending' : ''
@@ -201,18 +254,10 @@ const columnDefs = [
         cellEditor: 'agSelectCellEditor', cellEditorParams: { values: Object.keys(typeOptions) },
         valueFormatter: refDataFormatter(typeOptions), filter: true
     },
-    { headerName: 'Tournament', field: 'tournamentpin', width: 120, editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['0', '1'] }, filter: true },
+    { headerName: 'Tournament', field: 'tournamentpin', width: 120, filter: true, sortable: true, cellRenderer: tournamentCheckboxRenderer },
     { headerName: 'First Name', field: 'firstname', width: 130, filter: true },
     { headerName: 'Last Name', field: 'lastname', width: 130, filter: true },
     { headerName: 'Email', field: 'email', minWidth: 220, filter: true },
-    {
-        headerName: 'Owner ID', field: 'ownerid', width: 120, editable: true,
-        cellEditor: 'agSelectCellEditor',
-        cellEditorParams: () => ({ values: Object.keys(ownerMap) }),
-        valueFormatter: params => ownerMap[String(params.value)] ?? params.value ?? '',
-        filter: true
-    },
-    { headerName: 'Year', field: 'builtyear', width: 100, editable: true, filter: true },
     { headerName: 'Manufacturer', field: 'manufacturer', minWidth: 150, editable: true, filter: true },
     {
         headerName: 'Awards', field: 'awards', width: 170, editable: true,
@@ -220,7 +265,7 @@ const columnDefs = [
         valueFormatter: refDataFormatter(awardsOptions), filter: true
     },
     { headerName: 'Notes', field: 'HasNotes', width: 100, sortable: true, filter: true },
-    { headerName: 'Notes:', field: 'notes', minWidth: 220, editable: true, filter: true }
+    { headerName: 'Actions', width: 150, sortable: false, filter: false, cellRenderer: actionsRenderer, pinned: 'right' }
 ];
 
 const gridOptions = {
@@ -250,14 +295,7 @@ const gridOptions = {
 const gridApi = agGrid.createGrid(document.getElementById('machinesGrid'), gridOptions);
 
 async function loadData() {
-    const [ownersResp, listResp] = await Promise.all([
-        apiGet('machines_new.php?api=owners'),
-        apiGet('machines_new.php?api=list')
-    ]);
-
-    ownerMap = {};
-    ownersResp.rows.forEach(o => ownerMap[String(o.id)] = o.label);
-
+    const listResp = await apiGet('machines_new.php?api=list');
     gridApi.setGridOption('rowData', listResp.rows);
 }
 
