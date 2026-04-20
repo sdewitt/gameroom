@@ -64,8 +64,6 @@ $accounts_json = array_map(function($account) {
         'lastname' => $account['lastname'],
         'email' => $account['email'],
         'phone' => $account['phone'],
-        'activation_code' => $account['activation_code'] ? $account['activation_code'] : '--',
-        'role' => $account['role'],
         'registered' => $registered ? date('m/d/y', $registered) : '--',
         'registered_ts' => $registered ?: 0,
         'last_seen' => time_elapsed_string($account['last_seen']),
@@ -86,7 +84,7 @@ $accounts_json = array_map(function($account) {
 }
 .accounts-grid-actions {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
     justify-content: center;
 }
@@ -168,6 +166,7 @@ const gridOptions = {
     rowData: accountRows,
     pagination: true,
     paginationPageSize: 20,
+    paginationPageSizeSelector: [20, 50, 100, 250],
     animateRows: true,
     defaultColDef: {
         sortable: true,
@@ -176,13 +175,10 @@ const gridOptions = {
         floatingFilter: true
     },
     columnDefs: [
-        { headerName: '#', field: 'id', width: 90 },
         { headerName: 'First Name', field: 'firstname', minWidth: 130 },
         { headerName: 'Last Name', field: 'lastname', minWidth: 130 },
         { headerName: 'Email', field: 'email', minWidth: 220 },
         { headerName: 'Phone', field: 'phone', minWidth: 150 },
-        { headerName: 'Activation Code', field: 'activation_code', minWidth: 170 },
-        { headerName: 'Role', field: 'role', width: 120 },
         {
             headerName: 'Registered Date',
             field: 'registered',
@@ -196,12 +192,13 @@ const gridOptions = {
             tooltipField: 'last_seen_raw'
         },
         {
-            headerName: 'Actions',
+            headerName: '',
             field: 'actions',
-            width: 120,
+            width: 72,
             sortable: false,
             filter: false,
             floatingFilter: false,
+            suppressHeaderMenuButton: true,
             cellRenderer: actionsRenderer,
             pinned: 'right'
         }
