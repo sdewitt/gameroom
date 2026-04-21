@@ -93,6 +93,14 @@ $accounts_json = array_map(function($account) {
 <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.4/dist/ag-grid-community.min.js"></script>
 
 <style>
+main {
+    padding-left: 280px;
+    padding-right: 20px;
+}
+main.full {
+    padding-left: 20px;
+    padding-right: 20px;
+}
 #accountsGrid {
     width: 100%;
     height: 680px;
@@ -223,10 +231,6 @@ $accounts_json = array_map(function($account) {
     <i class="fas fa-times"></i>
 </div>
 <?php endif; ?>
-
-<div class="links">
-    <a href="account.php">Create Account</a>
-</div>
 
 <div id="accountsGrid" class="ag-theme-quartz"></div>
 
