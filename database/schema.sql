@@ -56,6 +56,16 @@ CREATE TABLE IF NOT EXISTS machineissues (
   PRIMARY KEY (Id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+
+CREATE TABLE IF NOT EXISTS settings (
+  id INT NOT NULL AUTO_INCREMENT,
+  setting_key VARCHAR(191) NOT NULL,
+  setting_value TEXT,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY setting_key_unique (setting_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 CREATE TABLE IF NOT EXISTS tmp_yearlistids (
   id INT NOT NULL AUTO_INCREMENT,
   gamelistid INT DEFAULT NULL,

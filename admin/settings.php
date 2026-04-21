@@ -1,73 +1,111 @@
 <?php
 include 'main.php';
-// Configuration file
-$file = '../config.php';
-// Open the configuration file for reading
-$contents = file_get_contents($file);
-// Format key function
-function format_key($key) {
-    $key = str_replace(['_', 'url', 'db ', ' pass', ' user'], [' ', 'URL', 'Database ', ' Password', ' Username'], strtolower($key));
-    return ucwords($key);
-}
-// Format HTML output function
-function format_var_html($key, $value) {
-    $html = '';
-    $type = 'text';
-    $value = htmlspecialchars(trim($value, '\''), ENT_QUOTES);
-    $type = strpos($key, 'pass') !== false ? 'password' : $type;
-    $type = in_array(strtolower($value), ['true', 'false']) ? 'checkbox' : $type;
-    $checked = strtolower($value) == 'true' ? ' checked' : '';
-    $html .= '<label for="' . $key . '">' . format_key($key) . '</label>';
-    if ($type == 'checkbox') {
-        $html .= '<input type="hidden" name="' . $key . '" value="false">';
+
+$settings_definition = [
+    'General' => [
+        'CURRENT_YEAR' => ['type' => 'number'],
+        'PRIOR_YEAR' => ['type' => 'number'],
+        'STARTDATE' => ['type' => 'text'],
+        'ENDDATE' => ['type' => 'text'],
+        'DB_SERVER' => ['type' => 'text'],
+        'DB_USER' => ['type' => 'text'],
+        'DB_PASS' => ['type' => 'password'],
+        'DB_NAME' => ['type' => 'text']
+    ],
+    'Registration' => [
+        'AUTO_LOGIN_AFTER_REGISTER' => ['type' => 'checkbox']
+    ],
+    'Account Activation' => [
+        'ACCOUNT_ACTIVATION' => ['type' => 'checkbox'],
+        'MAIL_FROM' => ['type' => 'text'],
+        'ACTIVATION_LINK' => ['type' => 'text'],
+        'AUTOLOGIN_LINK' => ['type' => 'text']
+    ]
+];
+
+$label_overrides = [
+    'DB_SERVER' => 'Database Host',
+    'DB_USER' => 'Database Username',
+    'DB_PASS' => 'Database Password',
+    'DB_NAME' => 'Database Name'
+];
+
+$settings_defaults = [
+    'CURRENT_YEAR' => (string)CURRENT_YEAR,
+    'PRIOR_YEAR' => (string)PRIOR_YEAR,
+    'STARTDATE' => STARTDATE,
+    'ENDDATE' => ENDDATE,
+    'DB_SERVER' => db_host,
+    'DB_USER' => db_user,
+    'DB_PASS' => db_pass,
+    'DB_NAME' => db_name,
+    'AUTO_LOGIN_AFTER_REGISTER' => auto_login_after_register ? 'true' : 'false',
+    'ACCOUNT_ACTIVATION' => account_activation ? 'true' : 'false',
+    'MAIL_FROM' => mail_from,
+    'ACTIVATION_LINK' => activation_link,
+    'AUTOLOGIN_LINK' => autologin_link
+];
+
+function format_settings_label($key, $label_overrides) {
+    if (isset($label_overrides[$key])) {
+        return $label_overrides[$key];
     }
-    $html .= '<input type="' . $type . '" name="' . $key . '" id="' . $key . '" value="' . $value . '" placeholder="' . format_key($key) . '"' . $checked . '>';
-    return $html;
+    return ucwords(strtolower(str_replace('_', ' ', $key)));
 }
-// Format tabs
-function format_tabs($contents) {
-    $rows = explode("\n", $contents);
-    echo '<div class="tabs">';
-    echo '<a href="#" class="active">General</a>';
-    for ($i = 0; $i < count($rows); $i++) {
-        preg_match('/\/\*(.*?)\*\//', $rows[$i], $match);
-        if ($match) {
-            echo '<a href="#">' . $match[1] . '</a>';
-        }
+
+function get_db_settings($pdo) {
+    try {
+        $pdo->query('SELECT 1 FROM settings LIMIT 1');
+    } catch (PDOException $e) {
+        return [];
     }
-    echo '</div>';
+
+    $stmt = $pdo->query('SELECT setting_key, setting_value FROM settings');
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $settings = [];
+    foreach ($rows as $row) {
+        $settings[$row['setting_key']] = $row['setting_value'];
+    }
+    return $settings;
 }
-// Format form
-function format_form($contents) {
-    $rows = explode("\n", $contents);
-    echo '<div class="tab-content active">';
-    for ($i = 0; $i < count($rows); $i++) {
-        preg_match('/\/\*(.*?)\*\//', $rows[$i], $match);
-        if ($match) {
-            echo '</div><div class="tab-content">';
-        }
-        preg_match('/define\(\'(.*?)\', ?(.*?)\)/', $rows[$i], $match);
-        if ($match) {
-            echo format_var_html($match[1], $match[2]);
-        }
-    }  
-    echo '</div>';
+
+function save_db_settings($pdo, $posted_settings) {
+    $pdo->exec('CREATE TABLE IF NOT EXISTS settings (
+        id INT NOT NULL AUTO_INCREMENT,
+        setting_key VARCHAR(191) NOT NULL,
+        setting_value TEXT NULL,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY setting_key_unique (setting_key)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+
+    $stmt = $pdo->prepare('INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)');
+    foreach ($posted_settings as $key => $value) {
+        $stmt->execute([$key, $value]);
+    }
 }
+
 if (!empty($_POST)) {
-    // Update the configuration file with the new keys and values
-    foreach ($_POST as $k => $v) {
-        $v = in_array(strtolower($v), ['true', 'false']) ? strtolower($v) : '\'' . $v . '\'';
-        $contents = preg_replace('/define\(\'' . $k . '\'\, ?(.*?)\)/s', 'define(\'' . $k . '\',' . $v . ')', $contents);
+    $posted = [];
+    foreach ($settings_definition as $group => $settings) {
+        foreach ($settings as $key => $meta) {
+            if ($meta['type'] === 'checkbox') {
+                $posted[$key] = isset($_POST[$key]) && $_POST[$key] === 'true' ? 'true' : 'false';
+                continue;
+            }
+            $posted[$key] = trim($_POST[$key] ?? '');
+        }
     }
-    file_put_contents('../config.php', $contents);
+
+    save_db_settings($pdo, $posted);
     header('Location: settings.php?success_msg=1');
     exit;
 }
-// Handle success messages
-if (isset($_GET['success_msg'])) {
-    if ($_GET['success_msg'] == 1) {
-        $success_msg = 'Settings updated successfully!';
-    }
+
+$current_settings = array_merge($settings_defaults, get_db_settings($pdo));
+
+if (isset($_GET['success_msg']) && $_GET['success_msg'] == 1) {
+    $success_msg = 'Settings updated successfully!';
 }
 ?>
 <?=template_admin_header('Settings', 'settings')?>
@@ -82,10 +120,37 @@ if (isset($_GET['success_msg'])) {
 </div>
 <?php endif; ?>
 
-<?=format_tabs($contents)?>
+<div class="tabs">
+    <?php $tab_index = 0; ?>
+    <?php foreach ($settings_definition as $tab_name => $_): ?>
+    <a href="#" class="<?=$tab_index === 0 ? 'active' : ''?>"><?=$tab_name?></a>
+    <?php $tab_index++; ?>
+    <?php endforeach; ?>
+</div>
+
 <div class="content-block">
     <form action="" method="post" class="form responsive-width-100">
-        <?=format_form($contents)?>
+        <?php $tab_index = 0; ?>
+        <?php foreach ($settings_definition as $group_name => $settings): ?>
+        <div class="tab-content" style="display: <?=$tab_index === 0 ? 'block' : 'none'?>;">
+            <?php foreach ($settings as $key => $meta): ?>
+            <?php
+                $value = $current_settings[$key] ?? '';
+                $label = format_settings_label($key, $label_overrides);
+                $safe_value = htmlspecialchars($value, ENT_QUOTES);
+            ?>
+            <label for="<?=$key?>"><?=$label?></label>
+            <?php if ($meta['type'] === 'checkbox'): ?>
+            <input type="hidden" name="<?=$key?>" value="false">
+            <input type="checkbox" name="<?=$key?>" id="<?=$key?>" value="true" <?=$value === 'true' ? 'checked' : ''?>>
+            <?php else: ?>
+            <input type="<?=$meta['type']?>" name="<?=$key?>" id="<?=$key?>" value="<?=$safe_value?>" placeholder="<?=$label?>">
+            <?php endif; ?>
+            <?php endforeach; ?>
+        </div>
+        <?php $tab_index++; ?>
+        <?php endforeach; ?>
+
         <div class="submit-btns">
             <input type="submit" value="Save">
         </div>
@@ -94,9 +159,9 @@ if (isset($_GET['success_msg'])) {
 
 <script>
 document.querySelectorAll("input[type='checkbox']").forEach(checkbox => {
-    checkbox.onclick = () => {
+    checkbox.addEventListener('change', () => {
         checkbox.value = checkbox.checked ? 'true' : 'false';
-    };
+    });
 });
 </script>
 
