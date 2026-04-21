@@ -46,37 +46,8 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
-// Retrieve GET request parameters (if specified)
-$search = isset($_GET['search']) ? trim($_GET['search']) : '';
-$status = isset($_GET['status']) ? $_GET['status'] : '';
-$activation = isset($_GET['activation']) ? $_GET['activation'] : '';
-$role = isset($_GET['role']) ? $_GET['role'] : '';
-
-// SQL where clause
-$where = '';
-$where .= $search ? 'WHERE (username LIKE :search OR email LIKE :search) ' : '';
-if ($status == 'active') {
-    $where .= $where ? 'AND last_seen > date_sub(now(), interval 1 month) ' : 'WHERE last_seen > date_sub(now(), interval 1 month) ';
-}
-if ($status == 'inactive') {
-    $where .= $where ? 'AND last_seen < date_sub(now(), interval 1 month) ' : 'WHERE last_seen < date_sub(now(), interval 1 month) ';
-}
-if ($activation == 'pending') {
-    $where .= $where ? 'AND activation_code != "activated" ' : 'WHERE activation_code != "activated" ';
-}
-if ($role) {
-    $where .= $where ? 'AND role = :role ' : 'WHERE role = :role ';
-}
-
 // Retrieve accounts
-$stmt = $pdo->prepare('SELECT * FROM accounts ' . $where . ' ORDER BY id ASC');
-if ($search) {
-    $search_param = '%' . $search . '%';
-    $stmt->bindParam('search', $search_param, PDO::PARAM_STR);
-}
-if ($role) {
-    $stmt->bindParam('role', $role, PDO::PARAM_STR);
-}
+$stmt = $pdo->prepare('SELECT * FROM accounts ORDER BY id ASC');
 $stmt->execute();
 $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -122,6 +93,14 @@ $accounts_json = array_map(function($account) {
 <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@32.3.4/dist/ag-grid-community.min.js"></script>
 
 <style>
+main {
+    padding-left: 280px;
+    padding-right: 20px;
+}
+main.full {
+    padding-left: 20px;
+    padding-right: 20px;
+}
 #accountsGrid {
     width: 100%;
     height: 680px;
@@ -245,8 +224,6 @@ $accounts_json = array_map(function($account) {
 }
 </style>
 
-<h2>Accounts</h2>
-
 <?php if (isset($success_msg)): ?>
 <div class="msg success">
     <i class="fas fa-check-circle"></i>
@@ -255,33 +232,7 @@ $accounts_json = array_map(function($account) {
 </div>
 <?php endif; ?>
 
-<div class="content-header links responsive-flex-column">
-    <a href="account.php">Create Account</a>
-    <form action="" method="get">
-        <div class="filters">
-            <a href="#"><i class="fas fa-filter"></i> Filters</a>
-            <div class="list">
-                <label><input type="checkbox" name="status" value="active"<?=$status=='active'?' checked':''?>>Active</label>
-                <label><input type="checkbox" name="status" value="inactive"<?=$status=='inactive'?' checked':''?>>Inactive</label>
-                <label><input type="checkbox" name="activation" value="pending"<?=$activation=='pending'?' checked':''?>>Pending Activation</label>
-                <?php if ($role): ?>
-                <label><input type="checkbox" name="role" value="<?=$role?>" checked><?=$role?></label>
-                <?php endif; ?>
-                <button type="submit">Apply</button>
-            </div>
-        </div>
-        <div class="search">
-            <label for="search">
-                <input id="search" type="text" name="search" placeholder="Search username or email..." value="<?=$search?>" class="responsive-width-100">
-                <i class="fas fa-search"></i>
-            </label>
-        </div>
-    </form>
-</div>
-
-<div class="content-block">
-    <div id="accountsGrid" class="ag-theme-quartz"></div>
-</div>
+<div id="accountsGrid" class="ag-theme-quartz"></div>
 
 <div id="accountModal" aria-hidden="true">
     <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editAccountTitle">
