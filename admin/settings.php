@@ -6,11 +6,7 @@ $settings_definition = [
         'CURRENT_YEAR' => ['type' => 'number'],
         'PRIOR_YEAR' => ['type' => 'number'],
         'STARTDATE' => ['type' => 'text'],
-        'ENDDATE' => ['type' => 'text'],
-        'DB_SERVER' => ['type' => 'text'],
-        'DB_USER' => ['type' => 'text'],
-        'DB_PASS' => ['type' => 'password'],
-        'DB_NAME' => ['type' => 'text']
+        'ENDDATE' => ['type' => 'text']
     ],
     'Registration' => [
         'AUTO_LOGIN_AFTER_REGISTER' => ['type' => 'checkbox']
@@ -23,22 +19,13 @@ $settings_definition = [
     ]
 ];
 
-$label_overrides = [
-    'DB_SERVER' => 'Database Host',
-    'DB_USER' => 'Database Username',
-    'DB_PASS' => 'Database Password',
-    'DB_NAME' => 'Database Name'
-];
+$label_overrides = [];
 
 $settings_defaults = [
     'CURRENT_YEAR' => (string)CURRENT_YEAR,
     'PRIOR_YEAR' => (string)PRIOR_YEAR,
     'STARTDATE' => STARTDATE,
     'ENDDATE' => ENDDATE,
-    'DB_SERVER' => db_host,
-    'DB_USER' => db_user,
-    'DB_PASS' => db_pass,
-    'DB_NAME' => db_name,
     'AUTO_LOGIN_AFTER_REGISTER' => auto_login_after_register ? 'true' : 'false',
     'ACCOUNT_ACTIVATION' => account_activation ? 'true' : 'false',
     'MAIL_FROM' => mail_from,
