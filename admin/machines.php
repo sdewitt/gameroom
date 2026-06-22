@@ -19,6 +19,12 @@ $db_conf = array(
 
 $g = new jqgrid($db_conf);
 
+$machine_filter = $_GET['machine_filter'] ?? '';
+$machine_filter_sql = '';
+if ($machine_filter === 'approved_unplaced') {
+    $machine_filter_sql = ' AND games.approved = 1 AND (games.yearlistid IS NULL OR games.yearlistid = 0)';
+}
+
 $grid["caption"] = "SFGE - Machine List"; // expand grid to screen width
 $grid["autowidth"] = true; // expand grid to screen width
 $grid["multiselect"] = true; // allow you to multi-select through checkboxes
@@ -55,7 +61,7 @@ $g->set_actions(array(
 $g->table = "gamelist";
 $g->select_command = "SELECT games.gamelistid, games.yearlistid, games.approved, games.tournamentpin, games.emailed, games.gametitle, games.gametype, user.firstname, user.lastname, user.email, games.ownerid, games.builtyear, games.manufacturer, games.awards, games.showyear, IF(LENGTH(games.notes) > 0, 'Yes', '') as HasNotes, games.notes 
  FROM gamelist as games
-LEFT JOIN accounts as user on games.ownerid=user.id where games.showyear=" . $_SESSION['showyear'];
+LEFT JOIN accounts as user on games.ownerid=user.id where games.showyear=" . $_SESSION['showyear'] . $machine_filter_sql;
 
 //remove to work BELOW
 $col = array();
@@ -285,6 +291,13 @@ $out = $g->render("list1");
                 <a href="../logout.php" class="right"><i class="fas fa-sign-out-alt"></i></a>
             </header>
 	<div style="margin:0px">
+        <form method="get" class="machine-filter-form">
+            <label for="machine_filter">Filter:</label>
+            <select id="machine_filter" name="machine_filter" onchange="this.form.submit()">
+                <option value="">All Machines</option>
+                <option value="approved_unplaced"<?= $machine_filter === 'approved_unplaced' ? ' selected' : '' ?>>Approved w/ unplaced booths</option>
+            </select>
+        </form>
 	<?php echo $out?>
 	</div>
 </main>
@@ -366,6 +379,16 @@ $out = $g->render("list1");
             .ui-jqgrid .ui-jqgrid-pager .ui-pg-div span.ui-icon { margin: 0px 2px; }
             .ui-jqgrid .ui-jqgrid-pager { height: 28px; }
             .ui-jqgrid .ui-jqgrid-pager .ui-pg-div { line-height: 25px; }
+            .machine-filter-form {
+                align-items: center;
+                display: flex;
+                gap: 8px;
+                margin: 0 0 10px 0;
+            }
+            .machine-filter-form select {
+                max-width: 260px;
+                padding: 4px;
+            }
 </style>
     </body>
 </html>
