@@ -76,9 +76,60 @@ if (window.tinymce) {
         height: 500,
         menubar: true,
         plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
-        toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | code fullscreen preview | removeformat',
+        toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | rewriteEnergize | code fullscreen preview | removeformat',
         browser_spellcheck: true,
         setup: function(editor) {
+            const energizedOpeners = [
+                'Thanks for being part of the arcade and pinball magic this year.',
+                'Your game is officially in the mix, and we could not be more excited.',
+                'The lineup just got stronger thanks to your submission.',
+                'We are thrilled to have your game joining the show floor.',
+                'Your contribution helps make the game room bigger, brighter, and more fun.',
+                'Huge thanks for sharing your machine with the community.',
+                'Your submission brings even more replay-worthy fun to the event.',
+                'We are excited to showcase your game alongside an amazing lineup.',
+                'Players are going to love seeing your machine on the floor.',
+                'Thanks for helping us build another unforgettable weekend of games.'
+            ];
+
+            function energizeText(text) {
+                const trimmed = text.trim();
+                const opener = energizedOpeners[Math.floor(Math.random() * energizedOpeners.length)];
+                if (!trimmed) {
+                    return opener;
+                }
+
+                let rewritten = trimmed
+                    .replace(/get ready to\s*/gi, '')
+                    .replace(/Southern-Fried Gaming Expo/gi, 'the event')
+                    .replace(/thank you for submitting/gi, 'thanks for sending in')
+                    .replace(/we simply could not host this incredible event without you/gi, 'your support keeps the games, lights, and excitement going')
+                    .replace(/we hope (this email finds you well|you'?re doing well)!?/gi, opener)
+                    .replace(/we['’]d love to invite you to participate again/gi, 'we would be excited to have you join us again')
+                    .replace(/help make it our biggest and best event yet/gi, 'help fill the floor with more games and more reasons to play');
+
+                if (rewritten === trimmed) {
+                    rewritten = `${opener} ${rewritten}`;
+                }
+
+                return rewritten.replace(/\s{2,}/g, ' ');
+            }
+
+            editor.ui.registry.addButton('rewriteEnergize', {
+                text: 'Rewrite & Energize',
+                tooltip: 'Rewrite selected copy with more varied, upbeat wording',
+                onAction: function() {
+                    const selectedText = editor.selection.getContent({ format: 'text' });
+                    const sourceText = selectedText || editor.getContent({ format: 'text' });
+                    const rewrittenText = energizeText(sourceText);
+                    if (selectedText) {
+                        editor.selection.setContent(editor.dom.encode(rewrittenText));
+                    } else {
+                        editor.insertContent(editor.dom.encode(rewrittenText));
+                    }
+                }
+            });
+
             templateSelect.addEventListener('change', function() {
                 const selectedTemplate = templateSelect.value;
                 const content = templateContents[selectedTemplate] || '';
@@ -94,22 +145,6 @@ if (window.tinymce) {
 
 <?=template_admin_footer()?>
 
-<?php if (isset($success_msg)): ?>
-<div class="msg success">
-    <i class="fas fa-check-circle"></i>
-    <p><?=$success_msg?></p>
-    <i class="fas fa-times"></i>
-</div>
-<?php endif; ?>
-
-<div class="content-block">
-
-    <form action="" method="post" >
-
-        <?php if (isset($activation_email_template)): ?>
-        <label for="activation_email_template">Activation Email Template</label>
-        <textarea id="activation_email_template" name="activation_email_template" style="height:300px; width: 100%; max-width: 100%;"><?=$activation_email_template?></textarea>
-        <?php endif; ?>
 <br><br>
         <?php if (isset($twofactor_email_template)): ?>
         <label for="twofactor_email_template">Auto-Login Email Template</label>
