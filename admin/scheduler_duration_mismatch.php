@@ -18,36 +18,54 @@ define('REQUEST_PANEL_DURATION_MISMATCH_COLOR', '#ffd8a8');
  */
 function apply_request_panel_duration_color(array $event): array
 {
-    if (!is_request_panel_event($event) || !has_duration_mismatch($event)) {
+    if (!should_check_duration_mismatch($event) || !has_duration_mismatch($event)) {
         return $event;
     }
 
     $event['backColor'] = REQUEST_PANEL_DURATION_MISMATCH_COLOR;
     $event['barColor'] = REQUEST_PANEL_DURATION_MISMATCH_COLOR;
+    $event['borderColor'] = '#f4a340';
+    $event['fontColor'] = '#3f2a00';
+    $event['cssClass'] = trim(($event['cssClass'] ?? '') . ' duration-mismatch');
     $event['durationMismatch'] = true;
 
     return $event;
 }
 
-function is_request_panel_event(array $event): bool
+function should_check_duration_mismatch(array $event): bool
 {
-    foreach (['panel_type', 'type', 'status', 'request_status'] as $field) {
-        if (isset($event[$field]) && strtoupper((string) $event[$field]) === 'REQUEST') {
+    $typeFields = ['panel_type', 'type', 'status', 'request_status', 'state', 'submission_type'];
+    $hasTypeField = false;
+
+    foreach ($typeFields as $field) {
+        if (!isset($event[$field]) || $event[$field] === '') {
+            continue;
+        }
+
+        $hasTypeField = true;
+        if (strtoupper((string) $event[$field]) === 'REQUEST') {
             return true;
         }
     }
 
-    return false;
+    // Some scheduler payloads only include panels.duration_minutes, start, and end.
+    // In that case, still check the duration instead of silently skipping the event.
+    return !$hasTypeField && has_requested_duration($event);
+}
+
+function is_request_panel_event(array $event): bool
+{
+    return should_check_duration_mismatch($event);
 }
 
 function has_duration_mismatch(array $event): bool
 {
-    if (!isset($event['duration_minutes'], $event['start'], $event['end'])) {
+    if (!has_requested_duration($event) || !isset($event['start'], $event['end'])) {
         return false;
     }
 
-    $requestedMinutes = (int) $event['duration_minutes'];
-    if ($requestedMinutes <= 0) {
+    $requestedMinutes = requested_duration_minutes($event);
+    if ($requestedMinutes === null || $requestedMinutes <= 0) {
         return false;
     }
 
@@ -57,6 +75,22 @@ function has_duration_mismatch(array $event): bool
     }
 
     return $scheduledMinutes !== $requestedMinutes;
+}
+
+function has_requested_duration(array $event): bool
+{
+    return requested_duration_minutes($event) !== null;
+}
+
+function requested_duration_minutes(array $event): ?int
+{
+    foreach (['duration_minutes', 'durationMinutes', 'requested_duration_minutes', 'requestedDurationMinutes', 'requested_duration', 'requestedDuration'] as $field) {
+        if (isset($event[$field]) && is_numeric($event[$field])) {
+            return (int) $event[$field];
+        }
+    }
+
+    return null;
 }
 
 function scheduled_minutes($start, $end): ?int

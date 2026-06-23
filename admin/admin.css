@@ -668,3 +668,13 @@ main .pagination span {
   width: 100%;
   height: 100%;
 }
+/* Light-orange highlight for scheduler events whose visible DayPilot duration
+   differs from the REQUEST duration stored in panels.duration_minutes. */
+.duration-mismatch,
+.scheduler_default_event.duration-mismatch,
+.scheduler_default_event_inner.duration-mismatch,
+.duration-mismatch .scheduler_default_event_inner {
+    background: #ffd8a8 !important;
+    border-color: #f4a340 !important;
+    color: #3f2a00 !important;
+}
