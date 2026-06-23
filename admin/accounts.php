@@ -69,6 +69,7 @@ if (isset($_GET['success_msg'])) {
 
 $accounts_json = array_map(function($account) {
     $registered = strtotime($account['registered']);
+    $last_seen = strtotime($account['last_seen']);
     return [
         'id' => (int)$account['id'],
         'username' => $account['username'],
@@ -82,7 +83,8 @@ $accounts_json = array_map(function($account) {
         'registered' => $registered ? date('m/d/y', $registered) : '--',
         'registered_ts' => $registered ?: 0,
         'last_seen' => time_elapsed_string($account['last_seen']),
-        'last_seen_raw' => $account['last_seen']
+        'last_seen_raw' => $account['last_seen'],
+        'last_seen_ts' => $last_seen ?: 0
     ];
 }, $accounts);
 ?>
@@ -103,7 +105,8 @@ main.full {
 }
 #accountsGrid {
     width: 100%;
-    height: 680px;
+    height: calc(100vh - 115px);
+    min-height: 420px;
 }
 .accounts-grid-actions {
     display: flex;
@@ -341,7 +344,8 @@ const gridOptions = {
             headerName: 'Last Seen',
             field: 'last_seen',
             minWidth: 130,
-            tooltipField: 'last_seen_raw'
+            tooltipField: 'last_seen_raw',
+            comparator: (a, b, nodeA, nodeB) => Number(nodeA.data.last_seen_ts) - Number(nodeB.data.last_seen_ts)
         },
         {
             headerName: '',
