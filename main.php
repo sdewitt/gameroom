@@ -107,7 +107,7 @@ function send_autologin_email($email, $code) {
 $fullname = $_SESSION['fname'] . " " . $_SESSION['lname'];
 
 $autologin_link = autologin_link . '?guid=' . $code;
-$email_template = str_replace('%link%', $autologin_link, file_get_contents('autologin_email.html'));
+$email_template = str_replace('%link%', $autologin_link, file_get_contents(__DIR__ . '/autologin_email.html'));
 $subject = 'SFGE: Game Registration Login Link';
 $mail = new PHPMailer(TRUE);
 
