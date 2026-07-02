@@ -61,9 +61,26 @@ if (isset($_GET['delete'])) {
     exit;
 }
 
-// Retrieve accounts
-$stmt = $pdo->prepare('SELECT * FROM accounts ORDER BY id ASC');
-$stmt->execute();
+// Retrieve accounts with current-year and all-time game counts
+$stmt = $pdo->prepare(
+    'SELECT accounts.*,
+            COALESCE(current_games.game_count, 0) AS current_game_count,
+            COALESCE(total_games.game_count, 0) AS total_game_count
+     FROM accounts
+     LEFT JOIN (
+         SELECT ownerid, COUNT(*) AS game_count
+         FROM gamelist
+         WHERE showyear = ?
+         GROUP BY ownerid
+     ) AS current_games ON current_games.ownerid = accounts.id
+     LEFT JOIN (
+         SELECT ownerid, COUNT(*) AS game_count
+         FROM gamelist
+         GROUP BY ownerid
+     ) AS total_games ON total_games.ownerid = accounts.id
+     ORDER BY accounts.id ASC'
+);
+$stmt->execute([ CURRENT_YEAR ]);
 $accounts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle success messages
@@ -99,6 +116,8 @@ $accounts_json = array_map(function($account) {
         'activation_code' => $account['activation_code'],
         'guid' => $account['guid'],
         'is_activated' => $account['activation_code'] === 'activated',
+        'current_game_count' => (int)$account['current_game_count'],
+        'total_game_count' => (int)$account['total_game_count'],
         'registered' => $registered ? date('m/d/y', $registered) : '--',
         'registered_ts' => $registered ?: 0,
         'last_seen' => time_elapsed_string($account['last_seen']),
@@ -369,6 +388,8 @@ const gridOptions = {
         { headerName: 'First Name', field: 'firstname', minWidth: 130 },
         { headerName: 'Last Name', field: 'lastname', minWidth: 130 },
         { headerName: 'Email', field: 'email', minWidth: 220 },
+        { headerName: 'Current # Games', field: 'current_game_count', minWidth: 150, filter: 'agNumberColumnFilter' },
+        { headerName: 'Total # Games', field: 'total_game_count', minWidth: 145, filter: 'agNumberColumnFilter' },
         {
             headerName: 'Phone',
             field: 'phone',
