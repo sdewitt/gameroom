@@ -15,6 +15,7 @@ $custom_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gamety
 $custom_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where gametype="c" and showyear=' . PRIOR_YEAR)->fetchColumn();
 $tournament_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where tournamentpin=1 and showyear=' . CURRENT_YEAR)->fetchColumn();
 $tournament_count_prior = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where tournamentpin=1 and showyear=' . PRIOR_YEAR)->fetchColumn();
+$unapproved_count = $pdo->query('SELECT COUNT(*) AS total FROM gamelist where approved=0 and showyear=' . CURRENT_YEAR)->fetchColumn();
 $machinesdown_count = $pdo->query('SELECT COUNT(distinct machineid) FROM machineissues where status=1')->fetchColumn();
 $opentickets_count = $pdo->query('SELECT COUNT(*) FROM machineissues where status=1')->fetchColumn();
 $votes_count = $pdo->query('SELECT COUNT(*) FROM votes')->fetchColumn();
@@ -119,7 +120,11 @@ if ($now > $date_votingcloses) {
     </div>
     <div class="content-block stat">
         <div>
+            <h3>Unapproved Machines</h3>
+            <p><?=number_format($unapproved_count)?><br>
+            <font size=-2><?=CURRENT_YEAR?> Submissions</font></p>
         </div>
+        <i class="fa-solid fa-clipboard-question"></i>
     </div>
         <div class="content-block stat">
         <div>
