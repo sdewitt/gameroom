@@ -38,6 +38,21 @@ if (isset($_POST['action']) && $_POST['action'] === 'resend_activation' && isset
     exit;
 }
 
+// Resend login magic link email
+if (isset($_POST['action']) && $_POST['action'] === 'resend_login' && isset($_POST['id'])) {
+    $id = (int)$_POST['id'];
+    $stmt = $pdo->prepare('SELECT email, guid FROM accounts WHERE id = ?');
+    $stmt->execute([ $id ]);
+    $account = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($account && !empty($account['email']) && !empty($account['guid'])) {
+        send_autologin_email($account['email'], $account['guid']);
+        header('Location: accounts.php?success_msg=5');
+        exit;
+    }
+    header('Location: accounts.php');
+    exit;
+}
+
 // Delete account
 if (isset($_GET['delete'])) {
     $stmt = $pdo->prepare('DELETE FROM accounts WHERE id = ?');
@@ -65,6 +80,9 @@ if (isset($_GET['success_msg'])) {
     if ($_GET['success_msg'] == 4) {
         $success_msg = 'Activation email resent successfully!';
     }
+    if ($_GET['success_msg'] == 5) {
+        $success_msg = 'Login link email sent successfully!';
+    }
 }
 
 $accounts_json = array_map(function($account) {
@@ -79,6 +97,7 @@ $accounts_json = array_map(function($account) {
         'phone' => $account['phone'],
         'role' => $account['role'],
         'activation_code' => $account['activation_code'],
+        'guid' => $account['guid'],
         'is_activated' => $account['activation_code'] === 'activated',
         'registered' => $registered ? date('m/d/y', $registered) : '--',
         'registered_ts' => $registered ?: 0,
@@ -114,6 +133,9 @@ main.full {
     align-items: center;
     justify-content: center;
 }
+.accounts-grid-actions form {
+    margin: 0;
+}
 .accounts-grid-actions a {
     color: #3f4a5a;
     opacity: .15;
@@ -143,6 +165,14 @@ main.full {
 .accounts-grid-actions a.delete:hover,
 .accounts-grid-actions a.delete:focus {
     color: #d7263d;
+}
+.accounts-grid-actions button.email-login:hover,
+.accounts-grid-actions button.email-login:focus {
+    color: #16a34a;
+}
+.accounts-grid-actions button.copy-login:hover,
+.accounts-grid-actions button.copy-login:focus {
+    color: #7c3aed;
 }
 #accountModal {
     position: fixed;
@@ -290,6 +320,7 @@ main.full {
 <script>
 const accountRows = <?=json_encode($accounts_json, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)?>;
 const roleValues = <?=json_encode($roles_list, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)?>;
+const autologinBaseUrl = <?=json_encode(autologin_link, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT)?>;
 
 const formatPhone = value => {
     const digits = (value || '').replace(/\D/g, '').slice(0, 10);
@@ -302,6 +333,16 @@ const actionsRenderer = params => {
     const id = Number(params.data.id);
     return `
         <div class="accounts-grid-actions">
+            <form method="post" action="accounts.php" onsubmit="return confirm('Email this user their login link?')">
+                <input type="hidden" name="action" value="resend_login">
+                <input type="hidden" name="id" value="${id}">
+                <button type="submit" class="email-login" title="Email login link to user ${id}" aria-label="Email login link to user ${id}">
+                    <i class="fas fa-envelope"></i>
+                </button>
+            </form>
+            <button type="button" class="copy-login" title="Copy magic login link for user ${id}" aria-label="Copy magic login link for user ${id}" data-copy-login="${id}">
+                <i class="fas fa-copy"></i>
+            </button>
             <button type="button" class="edit" title="Edit user ${id}" aria-label="Edit user ${id}" data-edit-account="${id}">
                 <i class="fas fa-pen"></i>
             </button>
@@ -350,7 +391,7 @@ const gridOptions = {
         {
             headerName: '',
             field: 'actions',
-            width: 72,
+            width: 140,
             sortable: false,
             filter: false,
             floatingFilter: false,
@@ -389,12 +430,44 @@ const closeModal = () => {
     modalEl.setAttribute('aria-hidden', 'true');
 };
 
+const copyMagicLink = (link, button) => {
+    const originalTitle = button.getAttribute('title');
+    const showCopied = () => {
+        button.setAttribute('title', 'Copied!');
+        setTimeout(() => button.setAttribute('title', originalTitle), 1500);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(link).then(showCopied);
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = link;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    showCopied();
+};
+
 document.addEventListener('click', event => {
     const trigger = event.target.closest('[data-edit-account]');
     if (trigger) {
         const accountId = Number(trigger.getAttribute('data-edit-account'));
         const account = accountRows.find(item => Number(item.id) === accountId);
         openModal(account);
+    }
+    const copyTrigger = event.target.closest('[data-copy-login]');
+    if (copyTrigger) {
+        const accountId = Number(copyTrigger.getAttribute('data-copy-login'));
+        const account = accountRows.find(item => Number(item.id) === accountId);
+        if (account && account.guid) {
+            copyMagicLink(`${autologinBaseUrl}?guid=${encodeURIComponent(account.guid)}`, copyTrigger);
+        }
     }
     if (event.target === modalEl) {
         closeModal();
