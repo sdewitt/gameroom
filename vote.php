@@ -12,45 +12,41 @@ $stmt->execute();
 $voted = $stmt->fetch();
 
    
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=1 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=1 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_em = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=2 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=2 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_ss = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=3 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=3 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_modern = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=4 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=4 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_restore = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=5 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=5 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_custom = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=6 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=6 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_arcade = $stmt->fetchAll();
 
 
 function format_game_option_label($game) {
-    $display_id = $game['yearlistid'];
+    $gamebringer = trim(substr($game['firstname'], 0, 1) . ' ' . $game['lastname']);
 
-    if ($display_id === null || $display_id === '') {
-        $display_id = $game['gamelistid'];
-    }
-
-    return $game['gametitle'] . " (" . $display_id . ")";
+    return $game['gametitle'] . " (" . $gamebringer . ")";
 }
 
 ?>
