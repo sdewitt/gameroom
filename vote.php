@@ -12,35 +12,42 @@ $stmt->execute();
 $voted = $stmt->fetch();
 
    
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=1 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=1 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_em = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=2 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=2 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_ss = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=3 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=3 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_modern = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=4 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=4 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_restore = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=5 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=5 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_custom = $stmt->fetchAll();
 
-$sqlstmt = "SELECT * FROM `gamelist` WHERE showyear=".$_SESSION['showyear']." and awards=6 order by gametitle";
+$sqlstmt = "SELECT gamelist.*, accounts.firstname, accounts.lastname FROM `gamelist` INNER JOIN accounts ON accounts.id = gamelist.ownerid WHERE gamelist.showyear=".$_SESSION['showyear']." and gamelist.awards=6 order by gamelist.gametitle";
 $stmt = $pdo->prepare($sqlstmt);
 $stmt->execute();
 $bis_arcade = $stmt->fetchAll();
+
+
+function format_game_option_label($game) {
+    $gamebringer = trim(substr($game['firstname'], 0, 1) . ' ' . $game['lastname']);
+
+    return $game['gametitle'] . " (" . $gamebringer . ")";
+}
 
 ?>
 <!DOCTYPE html>
@@ -85,7 +92,7 @@ $bis_arcade = $stmt->fetchAll();
             foreach ($bis_em as $bis_em) {
               echo "<option value=". $bis_em['gamelistid'];
               if ($bis_em['gamelistid'] == $voted['bis_em']) echo " selected";
-              echo " >" . $bis_em['gametitle'] ." (".$bis_em['yearlistid'].")"."</Option>";
+              echo " >" . format_game_option_label($bis_em) . "</Option>";
             } else {
             echo "<option>No Entries</option>";
             }
@@ -100,7 +107,7 @@ $bis_arcade = $stmt->fetchAll();
             foreach ($bis_ss as $bis_ss) {
               echo "<option value=". $bis_ss['gamelistid'];
               if ($bis_ss['gamelistid'] == $voted['bis_ss']) echo " selected";
-              echo " >" . $bis_ss['gametitle'] ." (".$bis_ss['yearlistid'].")". "</Option>";
+              echo " >" . format_game_option_label($bis_ss) . "</Option>";
               } else {
             echo "<option>No Entries</option>";
             }
@@ -115,7 +122,7 @@ $bis_arcade = $stmt->fetchAll();
             foreach ($bis_modern as $bis_modern) {
               echo "<option value=". $bis_modern['gamelistid'];
               if ($bis_modern['gamelistid'] == $voted['bis_modern']) echo " selected";
-              echo " >" . $bis_modern['gametitle'] ." (".$bis_modern['yearlistid'].")". "</Option>";
+              echo " >" . format_game_option_label($bis_modern) . "</Option>";
             } else {
             echo "<option>No Entries</option>";
             }
@@ -130,7 +137,7 @@ $bis_arcade = $stmt->fetchAll();
             foreach ($bis_restore as $bis_restore) {
               echo "<option value=". $bis_restore['gamelistid'];
               if ($bis_restore['gamelistid'] == $voted['bis_restore']) echo " selected";
-              echo " >" . $bis_restore['gametitle'] ." (".$bis_restore['yearlistid'].")". "</Option>";
+              echo " >" . format_game_option_label($bis_restore) . "</Option>";
             } else {
             echo "<option>No Entries</option>";
             }
@@ -145,7 +152,7 @@ $bis_arcade = $stmt->fetchAll();
             foreach ($bis_custom as $bis_custom) {
               echo "<option value=". $bis_custom['gamelistid'];
               if ($bis_custom['gamelistid'] == $voted['bis_custom']) echo " selected";
-              echo " >" . $bis_custom['gametitle'] ." (".$bis_custom['yearlistid'].")". "</Option>";
+              echo " >" . format_game_option_label($bis_custom) . "</Option>";
             } else {
             echo "<option>No Entries</option>";
             }
@@ -161,7 +168,7 @@ $bis_arcade = $stmt->fetchAll();
             foreach ($bis_arcade as $bis_arcade) {
               echo "<option value=". $bis_arcade['gamelistid'];
               if ($bis_arcade['gamelistid'] == $voted['bis_arcade']) echo " selected";
-              echo " >" . $bis_arcade['gametitle'] ." (".$bis_arcade['yearlistid'].")". "</Option>";
+              echo " >" . format_game_option_label($bis_arcade) . "</Option>";
             } else {
             echo "<option>No Entries</option>";
             }
