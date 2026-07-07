@@ -6,7 +6,9 @@ $obj = json_decode(file_get_contents($url), true);
 
 $cleannotes = htmlentities(strip_tags(trim($_POST['notes'])));
 
-send_newmachine_email($obj['name'], $cleannotes);
+if ($_SESSION['role'] != 'Admin') {
+    send_newmachine_email($obj['name'], $cleannotes);
+}
 
 $date=$obj['manufacture_date'];
 $ipdb_id=$obj['ipdb_id'];
