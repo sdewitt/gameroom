@@ -25,6 +25,18 @@ if ($machine_filter === 'approved_unplaced') {
     $machine_filter_sql = ' AND games.approved = 1 AND (games.yearlistid IS NULL OR games.yearlistid = 0)';
 }
 
+$sort_options = array(
+    '' => array('label' => 'Default', 'column' => 'yearlistid', 'order' => 'asc'),
+    'vendor' => array('label' => 'Vendor', 'column' => 'manufacturer', 'order' => 'asc'),
+    'status' => array('label' => 'Status', 'column' => 'approved', 'order' => 'desc'),
+    'invoice' => array('label' => 'Invoice', 'column' => 'emailed', 'order' => 'asc'),
+);
+$sort_by = $_GET['sort_by'] ?? '';
+if (!array_key_exists($sort_by, $sort_options)) {
+    $sort_by = '';
+}
+$current_sort = $sort_options[$sort_by];
+
 $grid["caption"] = "SFGE - Machine List"; // expand grid to screen width
 $grid["autowidth"] = true; // expand grid to screen width
 $grid["multiselect"] = true; // allow you to multi-select through checkboxes
@@ -36,7 +48,8 @@ $grid["tooltip"] = true;
 $grid["scroll"] = true;
 $grid["delete_options"]["afterSubmit"] = 'function(response) { return [true,""]; }';
 
-$grid["sortname"] = "yearlistid";
+$grid["sortname"] = $current_sort["column"];
+$grid["sortorder"] = $current_sort["order"];
 $grid["hotkeys"] = true;
 
 $g->set_options($grid);
@@ -296,6 +309,12 @@ $out = $g->render("list1");
             <select id="machine_filter" name="machine_filter" onchange="this.form.submit()">
                 <option value="">All Machines</option>
                 <option value="approved_unplaced"<?= $machine_filter === 'approved_unplaced' ? ' selected' : '' ?>>Approved w/ unplaced booths</option>
+            </select>
+            <label for="sort_by">Sort:</label>
+            <select id="sort_by" name="sort_by" onchange="this.form.submit()">
+                <?php foreach ($sort_options as $sort_value => $sort_option): ?>
+                    <option value="<?= htmlspecialchars($sort_value, ENT_QUOTES) ?>"<?= $sort_by === $sort_value ? ' selected' : '' ?>><?= htmlspecialchars($sort_option['label']) ?></option>
+                <?php endforeach; ?>
             </select>
         </form>
 	<?php echo $out?>
