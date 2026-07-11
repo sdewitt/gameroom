@@ -17,15 +17,15 @@ try {
 
     $mail->SMTPDebug = SMTP::DEBUG_SERVER;                      //Enable verbose debug output
     $mail->isSMTP();                                            //Send using SMTP
-    $mail->Host       = 'smtp-relay.gmail.com';                     //Set the SMTP server to send through
-    $mail->SMTPAuth   = false;                                   //Enable SMTP authentication
-    $mail->Username   = 'info@southernfriedgameroomexpo.com';                     //SMTP username
-    $mail->Password   = 'Pinball3000!';                               //SMTP password
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
-    $mail->Port       = 465;  
+    $mail->Host       = smtp_host;                     //Set the SMTP server to send through
+    $mail->SMTPAuth   = smtp_auth;                                   //Enable SMTP authentication
+    $mail->Username   = smtp_user;                     //SMTP username
+    $mail->Password   = smtp_pass;                               //SMTP password
+    $mail->SMTPSecure = smtp_secure;            //Enable implicit TLS encryption
+    $mail->Port       = smtp_port;  
 
    $mail->IsHTML(true); 
-   $mail->setFrom('info@southernfriedgameroomexpo.com', 'Darth Vader');
+   $mail->setFrom(smtp_from_email, smtp_from_name);
    $mail->addAddress('sdewitti@gmail.com');
    $mail->Subject = 'Force';
    $mail->Body = $email_template;
