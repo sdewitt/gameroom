@@ -1,7 +1,13 @@
-<?php
-  use PHPMailer\PHPMailer\PHPMailer;
-  use PHPMailer\PHPMailer\Exception;
-  require 'PHPMailer-master/src/Exception.php';
+<?php
+  include_once 'config.php';
+
+  $mail->SMTPAuth   = smtp_auth;
+  $mail->SMTPSecure = smtp_secure;
+  $mail->Port       = smtp_port;
+  $mail->Host       = smtp_host;
+  $mail->Username   = smtp_user;
+  $mail->Password   = smtp_pass;
+  $mail->SetFrom(smtp_from_email, smtp_from_name);
   require 'PHPMailer-master/src/PHPMailer.php';
   require 'PHPMailer-master/src/SMTP.php';
 

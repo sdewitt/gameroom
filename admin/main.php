@@ -187,15 +187,15 @@ $mail = new PHPMailer(TRUE);
 try {
 
     $mail->isSMTP();                                            //Send using SMTP
-    $mail->Host       = 'gameatl.com';                     //Set the SMTP server to send through
-    $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-    $mail->Username   = 'gameroom@gameatl.com';                     //SMTP username
-    $mail->Password   = 'SFGEPinball';                               //SMTP password
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
-    $mail->Port       = 465;  
+    $mail->Host       = smtp_host;                     //Set the SMTP server to send through
+    $mail->SMTPAuth   = smtp_auth;                                   //Enable SMTP authentication
+    $mail->Username   = smtp_user;                     //SMTP username
+    $mail->Password   = smtp_pass;                               //SMTP password
+    $mail->SMTPSecure = smtp_secure;            //Enable implicit TLS encryption
+    $mail->Port       = smtp_port;  
 
    $mail->IsHTML(true); 
-   $mail->setFrom('gameroom@gameatl.com', 'Southern-Fried Gaming Expo');
+   $mail->setFrom(smtp_from_email, smtp_from_name);
    $mail->addAddress($email, $fullname);
    $mail->Subject = 'SFGE: Machine Approved - ' . $machinename ;
    $mail->Body = $email_template;
@@ -230,15 +230,15 @@ $mail = new PHPMailer(TRUE);
 try {
 
     $mail->isSMTP();                                            //Send using SMTP
-    $mail->Host       = 'gameatl.com';                     //Set the SMTP server to send through
-    $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-    $mail->Username   = 'gameroom@gameatl.com';                     //SMTP username
-    $mail->Password   = 'SFGEPinball';                               //SMTP password
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
-    $mail->Port       = 465;  
+    $mail->Host       = smtp_host;                     //Set the SMTP server to send through
+    $mail->SMTPAuth   = smtp_auth;                                   //Enable SMTP authentication
+    $mail->Username   = smtp_user;                     //SMTP username
+    $mail->Password   = smtp_pass;                               //SMTP password
+    $mail->SMTPSecure = smtp_secure;            //Enable implicit TLS encryption
+    $mail->Port       = smtp_port;  
 
    $mail->IsHTML(true); 
-   $mail->setFrom('gameroom@gameatl.com', 'Southern-Fried Gaming Expo');
+   $mail->setFrom(smtp_from_email, smtp_from_name);
    $mail->addAddress($email, $fullname);
    $mail->Subject = 'Help make SFGE ' . CURRENT_YEAR . ' the best!';
    $mail->Body = $email_template;

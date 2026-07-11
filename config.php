@@ -100,6 +100,16 @@ if (!defined('PRIOR_YEAR')) define('PRIOR_YEAR', (int) app_setting('PRIOR_YEAR',
 if (!defined('STARTDATE')) define('STARTDATE', app_setting('STARTDATE', '7/31/' . CURRENT_YEAR));
 if (!defined('ENDDATE')) define('ENDDATE', app_setting('ENDDATE', '8/02/' . CURRENT_YEAR));
 
+/* Email SMTP */
+if (!defined('smtp_host')) define('smtp_host', app_setting('SMTP_HOST', ''));
+if (!defined('smtp_auth')) define('smtp_auth', filter_var(app_setting('SMTP_AUTH', 'true'), FILTER_VALIDATE_BOOLEAN));
+if (!defined('smtp_user')) define('smtp_user', app_setting('SMTP_USER', ''));
+if (!defined('smtp_pass')) define('smtp_pass', app_setting('SMTP_PASS', ''));
+if (!defined('smtp_secure')) define('smtp_secure', app_setting('SMTP_SECURE', 'ssl'));
+if (!defined('smtp_port')) define('smtp_port', (int) app_setting('SMTP_PORT', 465));
+if (!defined('smtp_from_email')) define('smtp_from_email', app_setting('SMTP_FROM_EMAIL', smtp_user));
+if (!defined('smtp_from_name')) define('smtp_from_name', app_setting('SMTP_FROM_NAME', 'Southern-Fried Gaming Expo'));
+
 /* Registration */
 define('auto_login_after_register', filter_var(app_setting('AUTO_LOGIN_AFTER_REGISTER', 'true'), FILTER_VALIDATE_BOOLEAN));
 /* Account Activation */
