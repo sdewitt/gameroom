@@ -12,7 +12,7 @@ $stmt = $pdo->prepare('
     WHERE g.showyear = ? AND g.approved = 1
     ORDER BY a.lastname, a.firstname, g.gametitle
 ');
-$stmt->execute([PRIOR_YEAR]);
+$stmt->execute([CURRENT_YEAR]);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $owners = [];
@@ -66,7 +66,7 @@ function report_escape($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 }
 ?>
-<?=template_admin_header('Game Count Report ' . PRIOR_YEAR, 'dashboard')?>
+<?=template_admin_header('Game Count Report ' . CURRENT_YEAR, 'dashboard')?>
 
 <style>
     .machine-count-report h1 { font-size: 28px; }
@@ -126,7 +126,7 @@ function report_escape($value) {
 </script>
 
 <section class="machine-count-report">
-    <h1>Game Count Report for <?=report_escape(PRIOR_YEAR)?></h1>
+    <h1>Game Count Report for <?=report_escape(CURRENT_YEAR)?></h1>
 
     <?php $sectionCounter = 0; ?>
     <?php foreach ($categories as $label => $entries): ?>
@@ -168,53 +168,6 @@ function report_escape($value) {
 </section>
 
 <?=template_admin_footer()?>
-
-    .toggle-icon {
-        width: 1.5em;
-        display: inline-block;
-        text-align: center;
-        margin-right: 8px;
-        font-size: 18px;
-    }
-
-    .games-list {
-        display: none;
-        margin-left: 24px;
-        margin-top: 6px;
-    }
-
-    .category-header {
-        font-size: 18px;
-        margin-top: 5px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        font-weight: normal;
-    }
-
-    .category-content {
-        display: none;
-        margin-left: 20px;
-    }
-</style>
-<script>
-    function toggleGames(id) {
-        const games = document.getElementById('games-' + id);
-        const toggle = document.getElementById('toggle-' + id);
-        const isOpen = games.style.display === 'block';
-        games.style.display = isOpen ? 'none' : 'block';
-        toggle.innerText = isOpen ? '➕' : '➖';
-    }
-
-    function toggleCategory(id) {
-        const section = document.getElementById('section-' + id);
-        const icon = document.getElementById('section-toggle-' + id);
-        const isOpen = section.style.display === 'block';
-        section.style.display = isOpen ? 'none' : 'block';
-        icon.innerText = isOpen ? '➕' : '➖';
-    }
-</script>
-</head><body>";
-
     echo "<h1>Game Count Report for 2025</h1>";
 
     $sectionCounter = 0;
