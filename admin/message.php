@@ -2,26 +2,36 @@
 // Required if your environment does not handle autoloading
 include 'main.php';
 
-$pquery = "SELECT phone FROM accounts where id = " . $_GET['user'];
-$phone = $pdo->query($pquery)->fetchColumn();
-$pquery = "SELECT lastname FROM accounts where id = " . $_GET['user'];
-$lastname = $pdo->query($pquery)->fetchColumn();
-$pquery = "SELECT firstname FROM accounts where id = " . $_GET['user'];
-$firstname = $pdo->query($pquery)->fetchColumn();
+$user_id = filter_input(INPUT_GET, 'user', FILTER_VALIDATE_INT);
+if (!$user_id) {
+    exit('Invalid user.');
+}
+
+$stmt = $pdo->prepare('SELECT phone, lastname, firstname FROM accounts WHERE id = ?');
+$stmt->execute([$user_id]);
+$account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$account) {
+    exit('User not found.');
+}
+
+$phone = $account['phone'];
+$lastname = $account['lastname'];
+$firstname = $account['firstname'];
 ?>
 <link href="buttons.css" rel="stylesheet" type="text/css">
 <center>
 <font size=+3><b>Send Message to: <?=$firstname?> <?=$lastname?> <?=formatPhoneNumber($phone)?></font></b><hr>
 <div id="button-container">
-<a href='message2.php?user=<?=$_GET['user']?>&message=1'>
+<a href='message2.php?user=<?=$user_id?>&message=1'>
 <button class="mui-btn mui-btn--primary full-width">We are having some issues with your machine can you return to check in desk</button></a>
 </div>
 <div id="button-container">
-<a href='message2.php?user=<?=$_GET['user']?>&message=2'>
+<a href='message2.php?user=<?=$user_id?>&message=2'>
 <button class="mui-btn mui-btn--primary full-width">We cannot locate the key to your machine, please see desk</button></a>
 </div>
 <div id="button-container">
-<a href='message2.php?user=<?=$_GET['user']?>&message=3'>
+<a href='message2.php?user=<?=$user_id?>&message=3'>
 <button class="mui-btn mui-btn--primary full-width">Just a TEST MESSAGE</button></a>
 </div>
 </center>
