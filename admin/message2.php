@@ -6,12 +6,23 @@ require __DIR__ . '/vendor/autoload.php';
 use Twilio\Rest\Client;
 
 include 'main.php';
-$pquery = "SELECT phone FROM accounts where id = " . $_GET['user'];
-$phone = $pdo->query($pquery)->fetchColumn();
-$pquery = "SELECT lastname FROM accounts where id = " . $_GET['user'];
-$lastname = $pdo->query($pquery)->fetchColumn();
-$pquery = "SELECT firstname FROM accounts where id = " . $_GET['user'];
-$firstname = $pdo->query($pquery)->fetchColumn();
+
+$user_id = filter_input(INPUT_GET, 'user', FILTER_VALIDATE_INT);
+if (!$user_id) {
+    exit('Invalid user.');
+}
+
+$stmt = $pdo->prepare('SELECT phone, lastname, firstname FROM accounts WHERE id = ?');
+$stmt->execute([$user_id]);
+$account = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$account) {
+    exit('User not found.');
+}
+
+$phone = $account['phone'];
+$lastname = $account['lastname'];
+$firstname = $account['firstname'];
 ?>
 <?php
 $message=intval($_GET['message']);
