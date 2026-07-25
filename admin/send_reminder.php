@@ -20,14 +20,18 @@ $recipient_options = [
 
 $selected_group = $_POST['recipient_group'] ?? '';
 $processing = $_SERVER['REQUEST_METHOD'] === 'POST';
+$action = $_POST['action'] ?? '';
 $error = '';
 $recipients = [];
+$sending = false;
 
 if ($processing) {
     if (!hash_equals($_SESSION['send_reminder_csrf'], $_POST['csrf_token'] ?? '')) {
         $error = 'Your session expired. Please reload the page and try again.';
     } elseif (!isset($recipient_options[$selected_group])) {
         $error = 'Select a recipient group before sending the reminder.';
+    } elseif (!in_array($action, ['preview', 'send'], true)) {
+        $error = 'Choose a recipient group to preview before sending.';
     } else {
         $sql = 'SELECT accounts.* FROM accounts WHERE EXISTS (
                     SELECT 1 FROM gamelist
@@ -36,6 +40,12 @@ if ($processing) {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($selected_group === 'prior_year' ? [PRIOR_YEAR] : []);
         $recipients = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $sending = $action === 'send';
+
+        if ($sending) {
+            // Make the confirmation single-use so refreshing cannot send the batch again.
+            $_SESSION['send_reminder_csrf'] = bin2hex(random_bytes(32));
+        }
     }
 }
 
@@ -57,8 +67,9 @@ template_admin_header('Send Reminder Emails', 'dashboard');
     </div>
     <?php endif; ?>
 
-    <form action="send_reminder.php" method="post" class="form responsive-width-100" onsubmit="return confirm('Send reminder emails to the selected group?')">
+    <form action="send_reminder.php" method="post" class="form responsive-width-100">
         <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($_SESSION['send_reminder_csrf'], ENT_QUOTES, 'UTF-8')?>">
+        <input type="hidden" name="action" value="preview">
 
         <?php foreach ($recipient_options as $value => $option): ?>
         <label class="reminder-recipient-option">
@@ -70,7 +81,7 @@ template_admin_header('Send Reminder Emails', 'dashboard');
         </label>
         <?php endforeach; ?>
 
-        <button type="submit">Send Reminder Emails</button>
+        <button type="submit">Review Recipients</button>
     </form>
 </div>
 
@@ -97,6 +108,30 @@ template_admin_header('Send Reminder Emails', 'dashboard');
     margin-top: 4px;
 }
 </style>
+<?php elseif (!$sending): ?>
+<div class="content-block">
+    <h3>Review <?=htmlspecialchars($recipient_options[$selected_group]['label'], ENT_QUOTES, 'UTF-8')?> recipients</h3>
+
+    <?php if ($recipients): ?>
+        <p>The reminder will be sent to these <?=count($recipients)?> people:</p>
+        <ul>
+            <?php foreach ($recipients as $recipient): ?>
+            <li><?=htmlspecialchars($recipient['firstname'] . ' ' . $recipient['lastname'] . ' (' . $recipient['email'] . ')', ENT_QUOTES, 'UTF-8')?></li>
+            <?php endforeach; ?>
+        </ul>
+
+        <form action="send_reminder.php" method="post" class="form responsive-width-100">
+            <input type="hidden" name="csrf_token" value="<?=htmlspecialchars($_SESSION['send_reminder_csrf'], ENT_QUOTES, 'UTF-8')?>">
+            <input type="hidden" name="recipient_group" value="<?=htmlspecialchars($selected_group, ENT_QUOTES, 'UTF-8')?>">
+            <input type="hidden" name="action" value="send">
+            <button type="submit">Confirm and Send <?=count($recipients)?> Emails</button>
+            <a href="send_reminder.php">Cancel</a>
+        </form>
+    <?php else: ?>
+        <p>There are no recipients in this group, so no email can be sent.</p>
+        <p><a href="send_reminder.php">Choose another recipient group</a></p>
+    <?php endif; ?>
+</div>
 <?php else: ?>
 <div class="content-block">
     <h3>Processing <?=htmlspecialchars($recipient_options[$selected_group]['label'], ENT_QUOTES, 'UTF-8')?> emails</h3>
