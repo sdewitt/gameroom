@@ -18,6 +18,16 @@ $recipient_options = [
     ]
 ];
 
+foreach ($recipient_options as $value => $option) {
+    $sql = 'SELECT COUNT(*) FROM accounts WHERE EXISTS (
+                SELECT 1 FROM gamelist
+                WHERE accounts.id = gamelist.ownerid' . $option['where'] . '
+            )';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($value === 'prior_year' ? [PRIOR_YEAR] : []);
+    $recipient_options[$value]['count'] = (int) $stmt->fetchColumn();
+}
+
 $selected_group = $_POST['recipient_group'] ?? '';
 $processing = $_SERVER['REQUEST_METHOD'] === 'POST';
 $action = $_POST['action'] ?? '';
@@ -82,7 +92,7 @@ template_admin_header('Send Reminder Emails', 'dashboard');
         <label class="reminder-recipient-option">
             <input type="radio" name="recipient_group" value="<?=htmlspecialchars($value, ENT_QUOTES, 'UTF-8')?>" <?=$selected_group === $value ? 'checked' : ''?> required>
             <span>
-                <strong><?=htmlspecialchars($option['label'], ENT_QUOTES, 'UTF-8')?></strong>
+                <strong><?=htmlspecialchars($option['label'], ENT_QUOTES, 'UTF-8')?> (<?=$option['count']?>)</strong>
                 <small><?=htmlspecialchars($option['description'], ENT_QUOTES, 'UTF-8')?></small>
             </span>
         </label>
