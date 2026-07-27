@@ -31,7 +31,28 @@ if ($message == 1) {
 } elseif ($message == 2) {
   $textbody="SFGE Gamebringer: We cannot locate the key to your machine, please see desk";
 } elseif ($message == 3) {
-  $textbody="SFGE Gamebringer: SFGE Gamebringer: Just a TEST MESSAGE";
+  $testStmt = $pdo->prepare(
+    'SELECT games.yearlistid, games.gametitle, games.gametype, accounts.firstname, accounts.lastname
+     FROM gamelist AS games
+     INNER JOIN accounts ON accounts.id = games.ownerid
+     WHERE games.showyear = ? AND accounts.id > 1
+     ORDER BY games.yearlistid ASC, games.gamelistid ASC
+     LIMIT 1'
+  );
+  $testStmt->execute([$_SESSION['showyear']]);
+  $testMachine = $testStmt->fetch(PDO::FETCH_ASSOC);
+
+  if (!$testMachine) {
+    exit('No gamebringer records found for the current show year.');
+  }
+
+  $gameTypeNames = [
+    'p' => 'Pinball',
+    'v' => 'Arcade',
+    'c' => 'Custom'
+  ];
+  $testGameType = $gameTypeNames[$testMachine['gametype']] ?? $testMachine['gametype'];
+  $textbody = "SFGE Gamebringer TEST: First normal-list entry #" . $testMachine['yearlistid'] . " - " . $testMachine['gametitle'] . " (" . $testGameType . ") from " . $testMachine['firstname'] . " " . $testMachine['lastname'];
 };
 
 

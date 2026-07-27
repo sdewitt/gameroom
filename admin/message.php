@@ -32,7 +32,7 @@ $firstname = $account['firstname'];
 </div>
 <div id="button-container">
 <a href='message2.php?user=<?=$user_id?>&message=3'>
-<button class="mui-btn mui-btn--primary full-width">Just a TEST MESSAGE</button></a>
+<button class="mui-btn mui-btn--primary full-width">Send me a TEST</button></a>
 </div>
 </center>
 
