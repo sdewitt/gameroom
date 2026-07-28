@@ -112,6 +112,9 @@ if (!defined('smtp_from_name')) define('smtp_from_name', app_setting('SMTP_FROM_
 
 /* Registration */
 define('auto_login_after_register', filter_var(app_setting('AUTO_LOGIN_AFTER_REGISTER', 'true'), FILTER_VALIDATE_BOOLEAN));
+/* Game submissions */
+define('game_additions_disabled', filter_var(app_setting('DISABLE_GAME_ADDITIONS', 'false'), FILTER_VALIDATE_BOOLEAN));
+define('game_additions_disabled_message', app_setting('GAME_ADDITIONS_DISABLED_MESSAGE', 'ONLINE submissions for this event are now disabled. Contact Joe & Mica or bring it to the event and we will do the best we can to fit it in. It MUST be a working arcade or pinball (FULL size machine)'));
 /* Account Activation */
 // Email activation variables
 // account activation required?
