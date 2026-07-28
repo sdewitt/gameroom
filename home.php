@@ -166,6 +166,20 @@ $out = $g->render("list1");
 		color: green;
 		border: 1px solid darkgray;
 	}
+	.game-additions-disabled {
+		display: inline-block;
+	}
+	.btn-blue:disabled {
+		background: #9b9b9b;
+		border-color: #858585;
+		color: #eeeeee;
+		cursor: not-allowed;
+		opacity: 0.8;
+	}
+	.btn-blue:disabled:hover {
+		background: #9b9b9b;
+		border-color: #858585;
+	}
 	</style>
 	</head>
 	<body class="loggedin">
@@ -192,7 +206,14 @@ $out = $g->render("list1");
 				echo "<b>You currently have ".$total_count." machines registered for SFGE".$_SESSION['showyear'].", submit a machine now!</b><br><br>";
 			}
 			if ($_SESSION['showstatus'] == 'open') {
-			echo "<a class='btn-blue' href='addpin.php'><i class='fa-solid fa-pinball'></i> Add Pinball</a>&nbsp;<a class='btn-blue' href='addvid.php'><i class='fas fa-ghost'></i> Add Arcade</a>&nbsp;<a class='btn-blue' href='addcustom.php'><i class='fas fa-gamepad'></i> Add Custom </a>&nbsp;";
+			if (game_additions_disabled) {
+				$disabled_message = htmlspecialchars(game_additions_disabled_message, ENT_QUOTES, 'UTF-8');
+				echo "<span class='game-additions-disabled' title='{$disabled_message}'><button type='button' class='btn-blue' disabled><i class='fa-solid fa-pinball'></i> Add Pinball</button></span>&nbsp;";
+				echo "<span class='game-additions-disabled' title='{$disabled_message}'><button type='button' class='btn-blue' disabled><i class='fas fa-ghost'></i> Add Arcade</button></span>&nbsp;";
+				echo "<span class='game-additions-disabled' title='{$disabled_message}'><button type='button' class='btn-blue' disabled><i class='fas fa-gamepad'></i> Add Custom</button></span>&nbsp;";
+			} else {
+				echo "<a class='btn-blue' href='addpin.php'><i class='fa-solid fa-pinball'></i> Add Pinball</a>&nbsp;<a class='btn-blue' href='addvid.php'><i class='fas fa-ghost'></i> Add Arcade</a>&nbsp;<a class='btn-blue' href='addcustom.php'><i class='fas fa-gamepad'></i> Add Custom </a>&nbsp;";
+			}
 			if ($total_count_prior > 0) {
 			echo "<a class='btn-gold' href='prioryearlist.php'><i class='fa-solid fa-list'></i> View Your " . $prioryear . " List</a>";
 			};

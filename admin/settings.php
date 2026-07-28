@@ -11,6 +11,10 @@ $settings_definition = [
     'Registration' => [
         'AUTO_LOGIN_AFTER_REGISTER' => ['type' => 'checkbox']
     ],
+    'Game Additions' => [
+        'DISABLE_GAME_ADDITIONS' => ['type' => 'checkbox'],
+        'GAME_ADDITIONS_DISABLED_MESSAGE' => ['type' => 'textarea']
+    ],
     'Account Activation' => [
         'ACCOUNT_ACTIVATION' => ['type' => 'checkbox'],
         'MAIL_FROM' => ['type' => 'text'],
@@ -19,7 +23,10 @@ $settings_definition = [
     ]
 ];
 
-$label_overrides = [];
+$label_overrides = [
+    'DISABLE_GAME_ADDITIONS' => 'Disable Game Additions',
+    'GAME_ADDITIONS_DISABLED_MESSAGE' => 'Disabled Game Additions Message'
+];
 
 $settings_defaults = [
     'CURRENT_YEAR' => (string)CURRENT_YEAR,
@@ -27,6 +34,8 @@ $settings_defaults = [
     'STARTDATE' => STARTDATE,
     'ENDDATE' => ENDDATE,
     'AUTO_LOGIN_AFTER_REGISTER' => auto_login_after_register ? 'true' : 'false',
+    'DISABLE_GAME_ADDITIONS' => game_additions_disabled ? 'true' : 'false',
+    'GAME_ADDITIONS_DISABLED_MESSAGE' => game_additions_disabled_message,
     'ACCOUNT_ACTIVATION' => account_activation ? 'true' : 'false',
     'MAIL_FROM' => mail_from,
     'ACTIVATION_LINK' => activation_link,
@@ -130,6 +139,8 @@ if (isset($_GET['success_msg']) && $_GET['success_msg'] == 1) {
             <?php if ($meta['type'] === 'checkbox'): ?>
             <input type="hidden" name="<?=$key?>" value="false">
             <input type="checkbox" name="<?=$key?>" id="<?=$key?>" value="true" <?=$value === 'true' ? 'checked' : ''?>>
+            <?php elseif ($meta['type'] === 'textarea'): ?>
+            <textarea name="<?=$key?>" id="<?=$key?>" rows="5" placeholder="<?=$label?>"><?=$safe_value?></textarea>
             <?php else: ?>
             <input type="<?=$meta['type']?>" name="<?=$key?>" id="<?=$key?>" value="<?=$safe_value?>" placeholder="<?=$label?>">
             <?php endif; ?>
